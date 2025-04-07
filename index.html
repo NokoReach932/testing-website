@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TESTING NAME</title> <!-- Changed Site Name -->
+    <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS -->
+</head>
+
+<body>
+    <header>
+        <h1>TESTING NAME</h1> <!-- Changed Site Name in Header -->
+        <p>Explore articles by the site creator</p>
+    </header>
+
+    <nav>
+        <button id="viewTab" class="active">View Articles</button>
+        <button id="writeTab">Admin Write</button>
+    </nav>
+
+    <div class="container">
+        <!-- Admin Write Section -->
+        <div id="writeSection" class="section">
+            <h2>Write New Article</h2>
+            <form id="articleForm" enctype="multipart/form-data">
+                <input type="text" id="title" placeholder="Article Title" required />
+                <textarea id="content" rows="6" placeholder="Write your article..." required></textarea>
+                <input type="file" id="imageUpload" accept="image/*" />
+                <button type="submit">Publish</button>
+            </form>
+            <div id="adminArticles"></div>
+        </div>
+
+        <!-- View Articles -->
+        <div id="viewSection" class="section active">
+            <h2>Published Articles</h2>
+            <div id="articlesList"></div>
+            <div id="fullArticle"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script> <!-- Link to external JS -->
+</body>
+
+</html>
