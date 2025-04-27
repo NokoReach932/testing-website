@@ -9,7 +9,7 @@ const adminArticles = document.getElementById("adminArticles");
 
 let isAdmin = false;
 
-// Admin credentials (multiple users)
+// Admin credentials
 const adminAccounts = {
   "chivorn": "chivorn123",
   "phirun": "phirun123",
@@ -156,6 +156,9 @@ window.viewFullArticle = function (index) {
 
   fullArticle.innerHTML = "";
 
+  const containerDiv = document.createElement("div");
+  containerDiv.className = "article-container"; // New container
+
   const articleDiv = document.createElement("div");
   articleDiv.className = "article-full";
 
@@ -178,7 +181,8 @@ window.viewFullArticle = function (index) {
   content.innerHTML = article.content.replace(/\n/g, "<br>");
   articleDiv.appendChild(content);
 
-  fullArticle.appendChild(articleDiv);
+  containerDiv.appendChild(articleDiv);
+  fullArticle.appendChild(containerDiv);
   articlesList.innerHTML = "";
 };
 
