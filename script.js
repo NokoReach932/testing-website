@@ -1,36 +1,19 @@
-// Menu and Overlay
 const menuToggle = document.getElementById('menuToggle');
 const sideMenu = document.getElementById('sideMenu');
 const overlay = document.getElementById('overlay');
-
-// Dark Mode
 const darkModeToggle = document.getElementById('darkModeToggle');
 const body = document.body;
 
-// Toggle dark mode
-darkModeToggle.addEventListener('click', () => {
-  body.classList.toggle('dark-mode');
-  localStorage.setItem('darkMode', body.classList.contains('dark-mode') ? 'enabled' : 'disabled');
-});
-
-// Check for saved dark mode preference
-if (localStorage.getItem('darkMode') === 'enabled') {
-  body.classList.add('dark-mode');
-}
-
-// Sliding menu functionality
 menuToggle.addEventListener('click', () => {
   sideMenu.classList.toggle('open');
   overlay.classList.toggle('active');
 });
 
-// Close the menu when overlay is clicked
 overlay.addEventListener('click', () => {
   sideMenu.classList.remove('open');
   overlay.classList.remove('active');
 });
 
-// Close the menu when clicking a button in the menu
 document.querySelectorAll('#sideMenu button').forEach(button => {
   button.addEventListener('click', () => {
     sideMenu.classList.remove('open');
@@ -38,7 +21,32 @@ document.querySelectorAll('#sideMenu button').forEach(button => {
   });
 });
 
-// Admin tab functionality
+// Dark mode toggle
+darkModeToggle.addEventListener('click', () => {
+  body.classList.toggle('dark-mode');
+  // Save dark mode preference to local storage
+  if (body.classList.contains('dark-mode')) {
+    localStorage.setItem('darkMode', 'enabled');
+  } else {
+    localStorage.removeItem('darkMode');
+  }
+});
+
+// Load dark mode preference on page load
+window.onload = () => {
+  if (localStorage.getItem('darkMode') === 'enabled') {
+    body.classList.add('dark-mode');
+  }
+};
+
+// Admin credentials
+const adminAccounts = {
+  "chivorn": "chivorn123",
+  "phirun": "phirun123",
+  "nokoreach": "nokoreach123"
+};
+
+// Tab switching
 const writeTab = document.getElementById("writeTab");
 const viewTab = document.getElementById("viewTab");
 const writeSection = document.getElementById("writeSection");
@@ -50,24 +58,6 @@ const adminArticles = document.getElementById("adminArticles");
 
 let isAdmin = false;
 
-// Admin credentials
-const adminAccounts = {
-  "chivorn": "chivorn123",
-  "phirun": "phirun123",
-  "nokoreach": "nokoreach123"
-};
-
-// Load and Save Articles
-function loadArticlesFromLocalStorage() {
-  const storedArticles = localStorage.getItem('articles');
-  return storedArticles ? JSON.parse(storedArticles) : [];
-}
-
-function saveArticlesToLocalStorage(articles) {
-  localStorage.setItem('articles', JSON.stringify(articles));
-}
-
-// Tab switching
 viewTab.addEventListener("click", () => {
   viewTab.classList.add("active");
   writeTab.classList.remove("active");
@@ -78,209 +68,129 @@ viewTab.addEventListener("click", () => {
 });
 
 writeTab.addEventListener("click", () => {
-  if (!isAdmin) {
-    const inputUser = prompt("Enter admin username:");
-    const inputPass = prompt("Enter admin password:");
-    const normalizedUser = inputUser.trim().toLowerCase();
-
-    if (adminAccounts[normalizedUser] && adminAccounts[normalizedUser] === inputPass) {
-      isAdmin = true;
-      alert("Welcome, Admin!");
-    } else {
-      alert("Incorrect credentials.");
-      return;
-    }
-  }
   writeTab.classList.add("active");
   viewTab.classList.remove("active");
   writeSection.classList.add("active");
   viewSection.classList.remove("active");
   history.pushState({ section: 'write' }, 'Write Article', '#write');
-  displayAdminArticles();
 });
 
-// Handle article submission
-form.addEventListener("submit", function (e) {
-  e.preventDefault();
+window.addEventListener("popstate", (event) => {
+  if (event.state && event.state.section === "view") {
+    viewTab.classList.add("active");
+    writeTab.classList.remove("active");
+    viewSection.classList.add("active");
+    writeSection.classList.remove("active");
+  } else if (event.state && event.state.section === "write") {
+    writeTab.classList.add("active");
+    viewTab.classList.remove("active");
+    writeSection.classList.add("active");
+    viewSection.classList.remove("active");
+  }
+});
+
+// Add article functionality
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+
   const title = document.getElementById("title").value;
   const content = document.getElementById("content").value;
-  const imageInput = document.getElementById("imageUpload");
-  const imageFile = imageInput.files[0];
+  const image = document.getElementById("imageUpload").files[0];
 
-  const articles = loadArticlesFromLocalStorage();
+  if (!title || !content) return alert("Title and content are required!");
 
-  if (imageFile) {
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      const img = new Image();
-      img.onload = function () {
-        const canvas = document.createElement('canvas');
-        const maxWidth = 800;
-        const scaleSize = maxWidth / img.width;
-        canvas.width = maxWidth;
-        canvas.height = img.height * scaleSize;
+  const article = {
+    title,
+    content,
+    image: image ? URL.createObjectURL(image) : null,
+    id: Date.now(),
+  };
 
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  // Store the article in localStorage (or database)
+  let articles = JSON.parse(localStorage.getItem('articles')) || [];
+  articles.push(article);
+  localStorage.setItem('articles', JSON.stringify(articles));
 
-        const base64Image = canvas.toDataURL('image/jpeg', 0.7);
-
-        const newArticle = {
-          title,
-          content,
-          date: new Date().toISOString(),
-          image: base64Image
-        };
-
-        articles.push(newArticle);
-        saveArticlesToLocalStorage(articles);
-
-        alert("Article published successfully!");
-        form.reset();
-        viewTab.click();
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(imageFile);
-  } else {
-    const newArticle = {
-      title,
-      content,
-      date: new Date().toISOString(),
-      image: null
-    };
-    articles.push(newArticle);
-    saveArticlesToLocalStorage(articles);
-
-    alert("Article published successfully!");
-    form.reset();
-    viewTab.click();
-  }
+  // Clear the form after submission
+  form.reset();
+  displayArticles();
 });
 
 // Display articles
 function displayArticles() {
-  articlesList.innerHTML = "";
-  fullArticle.innerHTML = "";
+  const articles = JSON.parse(localStorage.getItem('articles')) || [];
+  articlesList.innerHTML = '';
 
-  const articles = loadArticlesFromLocalStorage();
-
-  if (articles.length === 0) {
-    console.log("No articles available.");
-  }
-
-  articles.forEach((article, index) => {
-    const div = document.createElement("div");
-    div.className = "article-preview";
-    div.setAttribute("onclick", `viewFullArticle(${index})`);
-
-    if (article.image) {
-      const img = document.createElement("img");
-      img.src = article.image;
-      img.alt = "Article Image";
-      div.appendChild(img);
-    }
-
-    const titleDiv = document.createElement("div");
-    titleDiv.className = "article-title";
-    titleDiv.textContent = article.title;
-    div.appendChild(titleDiv);
-
-    articlesList.appendChild(div);
+  articles.forEach((article) => {
+    const articlePreview = document.createElement('div');
+    articlePreview.classList.add('article-preview');
+    articlePreview.innerHTML = `
+      <img src="${article.image || 'https://via.placeholder.com/300x200'}" alt="${article.title}">
+      <div class="article-title">${article.title}</div>
+    `;
+    articlePreview.addEventListener('click', () => {
+      displayFullArticle(article);
+    });
+    articlesList.appendChild(articlePreview);
   });
 }
 
-// View full article
-window.viewFullArticle = function (index) {
-  const articles = loadArticlesFromLocalStorage();
-  const article = articles[index];
+// Display full article
+function displayFullArticle(article) {
+  fullArticle.innerHTML = `
+    <div class="article-container">
+      <h2>${article.title}</h2>
+      <p>${article.content}</p>
+      ${article.image ? `<img src="${article.image}" alt="${article.title}">` : ''}
+    </div>
+  `;
+}
 
-  fullArticle.innerHTML = "";
+// Admin login functionality
+function checkAdminLogin() {
+  const username = prompt("Enter your username:");
+  const password = prompt("Enter your password:");
 
-  const containerDiv = document.createElement("div");
-  containerDiv.className = "article-container"; // New container
-
-  const articleDiv = document.createElement("div");
-  articleDiv.className = "article-full";
-
-  if (article.image) {
-    const img = document.createElement("img");
-    img.src = article.image;
-    img.alt = "Article Image";
-    articleDiv.appendChild(img);
+  if (adminAccounts[username] === password) {
+    isAdmin = true;
+    alert("Login successful!");
+    writeTab.classList.remove("disabled");
+  } else {
+    alert("Invalid credentials");
   }
+}
 
-  const title = document.createElement("h2");
-  title.textContent = article.title;
-  articleDiv.appendChild(title);
-
-  const publishDate = document.createElement("p");
-  publishDate.innerHTML = `<strong>Published:</strong> ${formatDate(article.date)}`;
-  articleDiv.appendChild(publishDate);
-
-  const content = document.createElement("p");
-  content.innerHTML = article.content.replace(/\n/g, "<br>");
-  articleDiv.appendChild(content);
-
-  containerDiv.appendChild(articleDiv);
-  fullArticle.appendChild(containerDiv);
-  articlesList.innerHTML = "";
-};
-
-// Admin view
-function displayAdminArticles() {
-  adminArticles.innerHTML = "";
-  const articles = loadArticlesFromLocalStorage();
-
-  articles.forEach((article, index) => {
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <hr>
-      <strong>${article.title}</strong>
-      <button class="delete-btn" onclick="deleteArticle(${index})">Delete</button>
-    `;
-    adminArticles.appendChild(div);
-  });
+// Load articles for the admin section
+function loadAdminArticles() {
+  if (isAdmin) {
+    const articles = JSON.parse(localStorage.getItem('articles')) || [];
+    adminArticles.innerHTML = '';
+    articles.forEach((article) => {
+      const articleDiv = document.createElement('div');
+      articleDiv.classList.add('article-preview');
+      articleDiv.innerHTML = `
+        <h3>${article.title}</h3>
+        <button class="delete-btn" onclick="deleteArticle(${article.id})">Delete</button>
+      `;
+      adminArticles.appendChild(articleDiv);
+    });
+  } else {
+    alert("You must be an admin to view this section.");
+  }
 }
 
 // Delete article
-window.deleteArticle = function (index) {
-  if (!isAdmin) return;
-  if (!confirm("Are you sure you want to delete this article?")) return;
-
-  const articles = loadArticlesFromLocalStorage();
-  articles.splice(index, 1);
-  saveArticlesToLocalStorage(articles);
-
-  alert("Article deleted successfully.");
+function deleteArticle(id) {
+  let articles = JSON.parse(localStorage.getItem('articles')) || [];
+  articles = articles.filter(article => article.id !== id);
+  localStorage.setItem('articles', JSON.stringify(articles));
   displayArticles();
-  displayAdminArticles();
-};
-
-// Format date
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  const options = { hour: 'numeric', minute: 'numeric', hour12: true };
-  const datePart = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
-  const timePart = date.toLocaleTimeString([], options);
-  return `${datePart} ${timePart}`;
 }
-
-// Browser navigation
-window.addEventListener('popstate', (event) => {
-  if (event.state?.section === 'write') {
-    writeTab.click();
-  } else {
-    viewTab.click();
-  }
-});
 
 // Initial load
 window.onload = () => {
-  if (window.location.hash === '#write') {
-    writeTab.click();
-  } else {
-    viewTab.click();
-  }
   displayArticles();
+  if (isAdmin) {
+    loadAdminArticles();
+  }
 };
