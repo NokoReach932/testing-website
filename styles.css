@@ -214,6 +214,13 @@ button[type="submit"] {
   cursor: pointer;
 }
 
+.admin-view {
+  background: #dfe6e9;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 5px;
+}
+
 /* Mobile */
 @media screen and (max-width: 768px) {
   .article-preview {
