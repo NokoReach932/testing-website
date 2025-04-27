@@ -193,8 +193,8 @@ function displayAdminArticles() {
 
   articles.forEach((article, index) => {
     const div = document.createElement("div");
+    div.classList.add('admin-view');
     div.innerHTML = `
-      <hr>
       <strong>${article.title}</strong>
       <button class="delete-btn" onclick="deleteArticle(${index})">Delete</button>
     `;
