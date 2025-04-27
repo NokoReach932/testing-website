@@ -6,6 +6,7 @@ const form = document.getElementById("articleForm");
 const articlesList = document.getElementById("articlesList");
 const fullArticle = document.getElementById("fullArticle");
 const adminArticles = document.getElementById("adminArticles");
+const darkModeToggle = document.getElementById("darkModeToggle");
 
 let isAdmin = false;
 
@@ -16,7 +17,7 @@ const adminAccounts = {
   "nokoreach": "nokoreach123"
 };
 
-// Load and Save Articles
+// Load and Save Articles from LocalStorage
 function loadArticlesFromLocalStorage() {
   const storedArticles = localStorage.getItem('articles');
   return storedArticles ? JSON.parse(storedArticles) : [];
@@ -26,7 +27,7 @@ function saveArticlesToLocalStorage(articles) {
   localStorage.setItem('articles', JSON.stringify(articles));
 }
 
-// Tab switching
+// Tab Switching
 viewTab.addEventListener("click", () => {
   viewTab.classList.add("active");
   writeTab.classList.remove("active");
@@ -58,7 +59,22 @@ writeTab.addEventListener("click", () => {
   displayAdminArticles();
 });
 
-// Handle article submission
+// Dark Mode Toggle
+darkModeToggle.addEventListener('click', () => {
+  document.body.classList.toggle('dark-mode');
+  const isDarkMode = document.body.classList.contains('dark-mode');
+  localStorage.setItem('darkMode', isDarkMode);
+});
+
+// Check if dark mode was previously enabled
+window.addEventListener('DOMContentLoaded', () => {
+  const isDarkMode = localStorage.getItem('darkMode') === 'true';
+  if (isDarkMode) {
+    document.body.classList.add('dark-mode');
+  }
+});
+
+// Handle Article Submission (Admin Write)
 form.addEventListener("submit", function (e) {
   e.preventDefault();
   const title = document.getElementById("title").value;
@@ -117,7 +133,7 @@ form.addEventListener("submit", function (e) {
   }
 });
 
-// Display articles
+// Display Articles in View Mode
 function displayArticles() {
   articlesList.innerHTML = "";
   fullArticle.innerHTML = "";
@@ -149,7 +165,7 @@ function displayArticles() {
   });
 }
 
-// View full article
+// View Full Article
 window.viewFullArticle = function (index) {
   const articles = loadArticlesFromLocalStorage();
   const article = articles[index];
@@ -157,7 +173,7 @@ window.viewFullArticle = function (index) {
   fullArticle.innerHTML = "";
 
   const containerDiv = document.createElement("div");
-  containerDiv.className = "article-container"; // New container
+  containerDiv.className = "article-container"; 
 
   const articleDiv = document.createElement("div");
   articleDiv.className = "article-full";
@@ -186,7 +202,7 @@ window.viewFullArticle = function (index) {
   articlesList.innerHTML = "";
 };
 
-// Admin view
+// Admin View
 function displayAdminArticles() {
   adminArticles.innerHTML = "";
   const articles = loadArticlesFromLocalStorage();
@@ -202,7 +218,7 @@ function displayAdminArticles() {
   });
 }
 
-// Delete article
+// Delete Article
 window.deleteArticle = function (index) {
   if (!isAdmin) return;
   if (!confirm("Are you sure you want to delete this article?")) return;
@@ -216,7 +232,7 @@ window.deleteArticle = function (index) {
   displayAdminArticles();
 };
 
-// Format date
+// Format Date
 function formatDate(dateString) {
   const date = new Date(dateString);
   const options = { hour: 'numeric', minute: 'numeric', hour12: true };
@@ -225,7 +241,7 @@ function formatDate(dateString) {
   return `${datePart} ${timePart}`;
 }
 
-// Browser navigation
+// Browser Navigation
 window.addEventListener('popstate', (event) => {
   if (event.state?.section === 'write') {
     writeTab.click();
@@ -234,7 +250,7 @@ window.addEventListener('popstate', (event) => {
   }
 });
 
-// Initial load
+// Initial Load
 window.onload = () => {
   if (window.location.hash === '#write') {
     writeTab.click();
