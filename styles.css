@@ -10,6 +10,14 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: #f5f5f5;
   min-height: 100vh;
+  color: #333;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+  background: #181818;
+  color: white;
 }
 
 /* Header */
@@ -19,6 +27,11 @@ header {
   padding: 1rem 2rem;
   text-align: center;
   position: relative;
+}
+
+header.dark-mode {
+  background: #2d3436;
+  color: white;
 }
 
 .header-container {
@@ -33,6 +46,19 @@ header {
   left: 1rem;
   font-size: 1.8rem;
   cursor: pointer;
+}
+
+.dark-mode-toggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.dark-mode-toggle:hover {
+  color: #0984e3;
 }
 
 /* Overlay */
@@ -87,6 +113,19 @@ header {
 
 .side-menu button:hover,
 .side-menu button.active {
+  background: #0984e3;
+}
+
+/* Dark mode for side menu */
+.side-menu.dark-mode {
+  background: #2d3436;
+}
+
+.side-menu.dark-mode button {
+  color: white;
+}
+
+.side-menu.dark-mode button:hover {
   background: #0984e3;
 }
 
@@ -170,6 +209,13 @@ button[type="submit"] {
   font-size: 1rem;
 }
 
+/* Dark mode for article previews */
+.article-preview.dark-mode {
+  background: #333;
+  color: white;
+  border: 1px solid #444;
+}
+
 /* Full article view container */
 .article-container {
   max-width: 700px;
@@ -196,6 +242,11 @@ button[type="submit"] {
   line-height: 1.8;
   color: #333;
   margin-bottom: 1.5rem;
+}
+
+.article-full.dark-mode {
+  background: #181818;
+  color: white;
 }
 
 .article-full strong {
