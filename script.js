@@ -1,3 +1,28 @@
+const menuToggle = document.getElementById('menuToggle');
+const sideMenu = document.getElementById('sideMenu');
+const overlay = document.getElementById('overlay');
+
+// Toggle menu
+menuToggle.addEventListener('click', () => {
+  sideMenu.classList.toggle('open');
+  overlay.classList.toggle('active');
+});
+
+// Close the menu when overlay is clicked
+overlay.addEventListener('click', () => {
+  sideMenu.classList.remove('open');
+  overlay.classList.remove('active');
+});
+
+// Close the menu when clicking a button in the menu
+document.querySelectorAll('#sideMenu button').forEach(button => {
+  button.addEventListener('click', () => {
+    sideMenu.classList.remove('open');
+    overlay.classList.remove('active');
+  });
+});
+
+// Admin tab functionality
 const writeTab = document.getElementById("writeTab");
 const viewTab = document.getElementById("viewTab");
 const writeSection = document.getElementById("writeSection");
@@ -6,7 +31,6 @@ const form = document.getElementById("articleForm");
 const articlesList = document.getElementById("articlesList");
 const fullArticle = document.getElementById("fullArticle");
 const adminArticles = document.getElementById("adminArticles");
-const darkModeToggle = document.getElementById("darkModeToggle");
 
 let isAdmin = false;
 
@@ -17,7 +41,7 @@ const adminAccounts = {
   "nokoreach": "nokoreach123"
 };
 
-// Load and Save Articles from LocalStorage
+// Load and Save Articles
 function loadArticlesFromLocalStorage() {
   const storedArticles = localStorage.getItem('articles');
   return storedArticles ? JSON.parse(storedArticles) : [];
@@ -27,7 +51,7 @@ function saveArticlesToLocalStorage(articles) {
   localStorage.setItem('articles', JSON.stringify(articles));
 }
 
-// Tab Switching
+// Tab switching
 viewTab.addEventListener("click", () => {
   viewTab.classList.add("active");
   writeTab.classList.remove("active");
@@ -59,22 +83,7 @@ writeTab.addEventListener("click", () => {
   displayAdminArticles();
 });
 
-// Dark Mode Toggle
-darkModeToggle.addEventListener('click', () => {
-  document.body.classList.toggle('dark-mode');
-  const isDarkMode = document.body.classList.contains('dark-mode');
-  localStorage.setItem('darkMode', isDarkMode);
-});
-
-// Check if dark mode was previously enabled
-window.addEventListener('DOMContentLoaded', () => {
-  const isDarkMode = localStorage.getItem('darkMode') === 'true';
-  if (isDarkMode) {
-    document.body.classList.add('dark-mode');
-  }
-});
-
-// Handle Article Submission (Admin Write)
+// Handle article submission
 form.addEventListener("submit", function (e) {
   e.preventDefault();
   const title = document.getElementById("title").value;
@@ -133,7 +142,7 @@ form.addEventListener("submit", function (e) {
   }
 });
 
-// Display Articles in View Mode
+// Display articles
 function displayArticles() {
   articlesList.innerHTML = "";
   fullArticle.innerHTML = "";
@@ -165,7 +174,7 @@ function displayArticles() {
   });
 }
 
-// View Full Article
+// View full article
 window.viewFullArticle = function (index) {
   const articles = loadArticlesFromLocalStorage();
   const article = articles[index];
@@ -173,7 +182,7 @@ window.viewFullArticle = function (index) {
   fullArticle.innerHTML = "";
 
   const containerDiv = document.createElement("div");
-  containerDiv.className = "article-container"; 
+  containerDiv.className = "article-container"; // New container
 
   const articleDiv = document.createElement("div");
   articleDiv.className = "article-full";
@@ -202,7 +211,7 @@ window.viewFullArticle = function (index) {
   articlesList.innerHTML = "";
 };
 
-// Admin View
+// Admin view
 function displayAdminArticles() {
   adminArticles.innerHTML = "";
   const articles = loadArticlesFromLocalStorage();
@@ -218,7 +227,7 @@ function displayAdminArticles() {
   });
 }
 
-// Delete Article
+// Delete article
 window.deleteArticle = function (index) {
   if (!isAdmin) return;
   if (!confirm("Are you sure you want to delete this article?")) return;
@@ -232,7 +241,7 @@ window.deleteArticle = function (index) {
   displayAdminArticles();
 };
 
-// Format Date
+// Format date
 function formatDate(dateString) {
   const date = new Date(dateString);
   const options = { hour: 'numeric', minute: 'numeric', hour12: true };
@@ -241,7 +250,7 @@ function formatDate(dateString) {
   return `${datePart} ${timePart}`;
 }
 
-// Browser Navigation
+// Browser navigation
 window.addEventListener('popstate', (event) => {
   if (event.state?.section === 'write') {
     writeTab.click();
@@ -250,7 +259,7 @@ window.addEventListener('popstate', (event) => {
   }
 });
 
-// Initial Load
+// Initial load
 window.onload = () => {
   if (window.location.hash === '#write') {
     writeTab.click();
