@@ -170,13 +170,40 @@ button[type="submit"] {
   font-size: 1rem;
 }
 
-/* Full article view */
+/* Full article view container */
+.article-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Full article content */
 .article-full img {
   max-width: 100%;
   margin: 1rem 0;
   border-radius: 8px;
 }
 
+.article-full h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.article-full p {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.article-full strong {
+  color: #666;
+  font-size: 1rem;
+}
+
+/* Admin Delete Button */
 .delete-btn {
   background: #d63031;
   color: white;
