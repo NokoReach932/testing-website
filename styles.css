@@ -9,7 +9,6 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: #f5f5f5;
-  color: #333;
   min-height: 100vh;
 }
 
@@ -215,6 +214,68 @@ button[type="submit"] {
   cursor: pointer;
 }
 
+/* Dark mode styles */
+body.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+header.dark-mode {
+  background-color: #1f1f1f;
+}
+
+.side-menu.dark-mode {
+  background-color: #2c2c2c;
+}
+
+.side-menu.dark-mode button:hover,
+.side-menu.dark-mode button.active {
+  background-color: #0984e3;
+}
+
+.container.dark-mode {
+  background-color: #333;
+  color: white;
+}
+
+.article-preview.dark-mode {
+  background-color: #444;
+  border: 1px solid #666;
+}
+
+.article-preview.dark-mode .article-title {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.article-full.dark-mode {
+  background-color: #222;
+}
+
+.article-full.dark-mode h2,
+.article-full.dark-mode p {
+  color: white;
+}
+
+.delete-btn.dark-mode {
+  background-color: #d63031;
+}
+
+/* Dark mode toggle button */
+.dark-mode-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: #e0e0e0;
+  background-color: transparent;
+  border: none;
+}
+
+.dark-mode-toggle:hover {
+  color: #0984e3;
+}
+
 /* Mobile */
 @media screen and (max-width: 768px) {
   .article-preview {
@@ -225,49 +286,4 @@ button[type="submit"] {
   .container {
     padding: 1rem;
   }
-}
-
-/* Dark Mode Styles */
-body.dark-mode {
-  background-color: #121212;
-  color: #e0e0e0;
-}
-
-body.dark-mode .card {
-  background-color: #333;
-  color: #e0e0e0;
-  border: 1px solid #444;
-}
-
-body.dark-mode .article-preview {
-  background-color: #000;
-  color: #fff;
-}
-
-body.dark-mode .article-title {
-  color: #fff;
-}
-
-body.dark-mode .article-preview img {
-  filter: brightness(0.8);
-}
-
-body.dark-mode form input,
-body.dark-mode form textarea {
-  background-color: #333;
-  color: #e0e0e0;
-  border: 1px solid #444;
-}
-
-body.dark-mode button[type="submit"] {
-  background: #4CAF50;
-  color: white;
-}
-
-body.dark-mode button[type="submit"]:hover {
-  background: #45a049;
-}
-
-body.dark-mode .delete-btn {
-  background: #e74c3c;
 }
