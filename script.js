@@ -1,52 +1,3 @@
-const menuToggle = document.getElementById('menuToggle');
-const sideMenu = document.getElementById('sideMenu');
-const overlay = document.getElementById('overlay');
-const darkModeToggle = document.getElementById('darkModeToggle');
-const body = document.body;
-
-menuToggle.addEventListener('click', () => {
-  sideMenu.classList.toggle('open');
-  overlay.classList.toggle('active');
-});
-
-overlay.addEventListener('click', () => {
-  sideMenu.classList.remove('open');
-  overlay.classList.remove('active');
-});
-
-document.querySelectorAll('#sideMenu button').forEach(button => {
-  button.addEventListener('click', () => {
-    sideMenu.classList.remove('open');
-    overlay.classList.remove('active');
-  });
-});
-
-// Dark mode toggle
-darkModeToggle.addEventListener('click', () => {
-  body.classList.toggle('dark-mode');
-  // Save dark mode preference to local storage
-  if (body.classList.contains('dark-mode')) {
-    localStorage.setItem('darkMode', 'enabled');
-  } else {
-    localStorage.removeItem('darkMode');
-  }
-});
-
-// Load dark mode preference on page load
-window.onload = () => {
-  if (localStorage.getItem('darkMode') === 'enabled') {
-    body.classList.add('dark-mode');
-  }
-};
-
-// Admin credentials
-const adminAccounts = {
-  "chivorn": "chivorn123",
-  "phirun": "phirun123",
-  "nokoreach": "nokoreach123"
-};
-
-// Tab switching
 const writeTab = document.getElementById("writeTab");
 const viewTab = document.getElementById("viewTab");
 const writeSection = document.getElementById("writeSection");
@@ -58,13 +9,31 @@ const adminArticles = document.getElementById("adminArticles");
 
 let isAdmin = false;
 
+// Admin credentials
+const adminAccounts = {
+  "chivorn": "chivorn123",
+  "phirun": "phirun123",
+  "nokoreach": "nokoreach123"
+};
+
+// Load and Save Articles
+function loadArticlesFromLocalStorage() {
+  const storedArticles = localStorage.getItem('articles');
+  return storedArticles ? JSON.parse(storedArticles) : [];
+}
+
+function saveArticlesToLocalStorage(articles) {
+  localStorage.setItem('articles', JSON.stringify(articles));
+}
+
+// Tab switching
 viewTab.addEventListener("click", () => {
   viewTab.classList.add("active");
   writeTab.classList.remove("active");
   viewSection.classList.add("active");
   writeSection.classList.remove("active");
-  history.pushState({ section: 'view' }, 'View Articles', '#view');
-  displayArticles();
+  history.pushState(null, "", "#view");
+  loadArticles();
 });
 
 writeTab.addEventListener("click", () => {
@@ -72,125 +41,129 @@ writeTab.addEventListener("click", () => {
   viewTab.classList.remove("active");
   writeSection.classList.add("active");
   viewSection.classList.remove("active");
-  history.pushState({ section: 'write' }, 'Write Article', '#write');
+  history.pushState(null, "", "#write");
+  loadAdminArticles();
 });
 
-window.addEventListener("popstate", (event) => {
-  if (event.state && event.state.section === "view") {
-    viewTab.classList.add("active");
-    writeTab.classList.remove("active");
-    viewSection.classList.add("active");
-    writeSection.classList.remove("active");
-  } else if (event.state && event.state.section === "write") {
-    writeTab.classList.add("active");
-    viewTab.classList.remove("active");
-    writeSection.classList.add("active");
-    viewSection.classList.remove("active");
-  }
+// Dark Mode Toggle
+const darkModeToggle = document.getElementById("darkModeToggle");
+darkModeToggle.addEventListener("click", () => {
+  document.body.classList.toggle("dark-mode");
+  document.querySelector("header").classList.toggle("dark-mode");
+  document.querySelector(".side-menu").classList.toggle("dark-mode");
+  document.querySelector(".container").classList.toggle("dark-mode");
+  document.querySelector(".delete-btn").classList.toggle("dark-mode");
+  document.querySelector(".article-preview").classList.toggle("dark-mode");
 });
 
-// Add article functionality
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-
+// Article Form Submission
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
   const title = document.getElementById("title").value;
   const content = document.getElementById("content").value;
   const image = document.getElementById("imageUpload").files[0];
 
-  if (!title || !content) return alert("Title and content are required!");
+  if (title && content) {
+    const articles = loadArticlesFromLocalStorage();
+    const newArticle = {
+      title,
+      content,
+      imageUrl: image ? URL.createObjectURL(image) : null,
+      id: Date.now()
+    };
 
-  const article = {
-    title,
-    content,
-    image: image ? URL.createObjectURL(image) : null,
-    id: Date.now(),
-  };
-
-  // Store the article in localStorage (or database)
-  let articles = JSON.parse(localStorage.getItem('articles')) || [];
-  articles.push(article);
-  localStorage.setItem('articles', JSON.stringify(articles));
-
-  // Clear the form after submission
-  form.reset();
-  displayArticles();
+    articles.push(newArticle);
+    saveArticlesToLocalStorage(articles);
+    form.reset();
+    loadArticles();
+  }
 });
 
-// Display articles
-function displayArticles() {
-  const articles = JSON.parse(localStorage.getItem('articles')) || [];
-  articlesList.innerHTML = '';
+// Load and display articles in the "View Articles" section
+function loadArticles() {
+  articlesList.innerHTML = "";
+  const articles = loadArticlesFromLocalStorage();
 
-  articles.forEach((article) => {
-    const articlePreview = document.createElement('div');
-    articlePreview.classList.add('article-preview');
+  articles.forEach(article => {
+    const articlePreview = document.createElement("div");
+    articlePreview.classList.add("article-preview");
     articlePreview.innerHTML = `
-      <img src="${article.image || 'https://via.placeholder.com/300x200'}" alt="${article.title}">
+      <img src="${article.imageUrl || 'https://via.placeholder.com/300x200'}" alt="${article.title}">
       <div class="article-title">${article.title}</div>
     `;
-    articlePreview.addEventListener('click', () => {
-      displayFullArticle(article);
-    });
+    articlePreview.addEventListener("click", () => showFullArticle(article.id));
     articlesList.appendChild(articlePreview);
   });
 }
 
-// Display full article
-function displayFullArticle(article) {
-  fullArticle.innerHTML = `
-    <div class="article-container">
-      <h2>${article.title}</h2>
-      <p>${article.content}</p>
-      ${article.image ? `<img src="${article.image}" alt="${article.title}">` : ''}
-    </div>
-  `;
+// Show full article
+function showFullArticle(articleId) {
+  const articles = loadArticlesFromLocalStorage();
+  const article = articles.find(a => a.id === articleId);
+  if (article) {
+    fullArticle.innerHTML = `
+      <div class="article-container">
+        <h2>${article.title}</h2>
+        <img src="${article.imageUrl || 'https://via.placeholder.com/700x400'}" alt="${article.title}">
+        <p>${article.content}</p>
+      </div>
+    `;
+  }
 }
 
-// Admin login functionality
-function checkAdminLogin() {
-  const username = prompt("Enter your username:");
-  const password = prompt("Enter your password:");
+// Load and display articles in the "Admin Write" section
+function loadAdminArticles() {
+  adminArticles.innerHTML = "";
+  if (isAdmin) {
+    const articles = loadArticlesFromLocalStorage();
+    articles.forEach(article => {
+      const articleItem = document.createElement("div");
+      articleItem.classList.add("article-item");
+      articleItem.innerHTML = `
+        <p><strong>${article.title}</strong></p>
+        <button class="delete-btn" onclick="deleteArticle(${article.id})">Delete</button>
+      `;
+      adminArticles.appendChild(articleItem);
+    });
+  } else {
+    // If not admin, show a login prompt
+    adminArticles.innerHTML = `
+      <input type="text" id="adminUsername" placeholder="Username">
+      <input type="password" id="adminPassword" placeholder="Password">
+      <button onclick="loginAdmin()">Login</button>
+    `;
+  }
+}
 
+// Admin login function
+function loginAdmin() {
+  const username = document.getElementById("adminUsername").value;
+  const password = document.getElementById("adminPassword").value;
+  
   if (adminAccounts[username] === password) {
     isAdmin = true;
-    alert("Login successful!");
-    writeTab.classList.remove("disabled");
+    loadAdminArticles();
   } else {
     alert("Invalid credentials");
   }
 }
 
-// Load articles for the admin section
-function loadAdminArticles() {
-  if (isAdmin) {
-    const articles = JSON.parse(localStorage.getItem('articles')) || [];
-    adminArticles.innerHTML = '';
-    articles.forEach((article) => {
-      const articleDiv = document.createElement('div');
-      articleDiv.classList.add('article-preview');
-      articleDiv.innerHTML = `
-        <h3>${article.title}</h3>
-        <button class="delete-btn" onclick="deleteArticle(${article.id})">Delete</button>
-      `;
-      adminArticles.appendChild(articleDiv);
-    });
-  } else {
-    alert("You must be an admin to view this section.");
-  }
-}
-
 // Delete article
-function deleteArticle(id) {
-  let articles = JSON.parse(localStorage.getItem('articles')) || [];
-  articles = articles.filter(article => article.id !== id);
-  localStorage.setItem('articles', JSON.stringify(articles));
-  displayArticles();
+function deleteArticle(articleId) {
+  const articles = loadArticlesFromLocalStorage();
+  const filteredArticles = articles.filter(a => a.id !== articleId);
+  saveArticlesToLocalStorage(filteredArticles);
+  loadAdminArticles();
+  loadArticles();
 }
 
 // Initial load
-window.onload = () => {
-  displayArticles();
-  if (isAdmin) {
-    loadAdminArticles();
-  }
-};
+if (window.location.hash === "#write") {
+  writeTab.classList.add("active");
+  viewTab.classList.remove("active");
+  writeSection.classList.add("active");
+  viewSection.classList.remove("active");
+  loadAdminArticles();
+} else {
+  loadArticles();
+}
