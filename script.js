@@ -1,8 +1,24 @@
+// Menu and Overlay
 const menuToggle = document.getElementById('menuToggle');
 const sideMenu = document.getElementById('sideMenu');
 const overlay = document.getElementById('overlay');
 
-// Toggle menu
+// Dark Mode
+const darkModeToggle = document.getElementById('darkModeToggle');
+const body = document.body;
+
+// Toggle dark mode
+darkModeToggle.addEventListener('click', () => {
+  body.classList.toggle('dark-mode');
+  localStorage.setItem('darkMode', body.classList.contains('dark-mode') ? 'enabled' : 'disabled');
+});
+
+// Check for saved dark mode preference
+if (localStorage.getItem('darkMode') === 'enabled') {
+  body.classList.add('dark-mode');
+}
+
+// Sliding menu functionality
 menuToggle.addEventListener('click', () => {
   sideMenu.classList.toggle('open');
   overlay.classList.toggle('active');
