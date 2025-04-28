@@ -10,7 +10,6 @@
 <body>
   <header>
     <div class="header-container">
-      <!-- Replaced the title with the logo image -->
       <img src="logo.png" alt="Komnottra Logo" class="logo">
       <div id="menuToggle" class="menu-toggle">&#9776;</div>
     </div>
@@ -21,7 +20,7 @@
   <nav id="sideMenu" class="side-menu">
     <button id="viewTab" class="active">View Articles</button>
     <button id="writeTab">Admin Write</button>
-
+    <button id="categoryTab">Manage Categories</button>
   </nav>
 
   <div class="container">
@@ -37,34 +36,24 @@
         <input type="text" id="title" placeholder="Article Title" required>
         <textarea id="content" rows="8" placeholder="Article Content" required></textarea>
         <input type="file" id="imageUpload" accept="image/*">
+        <select id="categorySelect" required>
+          <option value="">Select Category</option>
+        </select>
         <button type="submit">Publish</button>
       </form>
       <div id="adminArticles"></div>
     </section>
+
+    <section id="categorySection" class="section">
+      <h2>Manage Categories</h2>
+      <form id="categoryForm">
+        <input type="text" id="newCategory" placeholder="New Category" required>
+        <button type="submit">Add Category</button>
+      </form>
+      <div id="categoriesList"></div>
+    </section>
   </div>
 
   <script src="script.js"></script>
-  <script>
-    const menuToggle = document.getElementById('menuToggle');
-    const sideMenu = document.getElementById('sideMenu');
-    const overlay = document.getElementById('overlay');
-
-    menuToggle.addEventListener('click', () => {
-      sideMenu.classList.toggle('open');
-      overlay.classList.toggle('active');
-    });
-
-    overlay.addEventListener('click', () => {
-      sideMenu.classList.remove('open');
-      overlay.classList.remove('active');
-    });
-
-    document.querySelectorAll('#sideMenu button').forEach(button => {
-      button.addEventListener('click', () => {
-        sideMenu.classList.remove('open');
-        overlay.classList.remove('active');
-      });
-    });
-  </script>
 </body>
 </html>
