@@ -1,11 +1,16 @@
 const writeTab = document.getElementById("writeTab");
 const viewTab = document.getElementById("viewTab");
+const categoryTab = document.getElementById("categoryTab");
 const writeSection = document.getElementById("writeSection");
 const viewSection = document.getElementById("viewSection");
+const categorySection = document.getElementById("categorySection");
 const form = document.getElementById("articleForm");
+const categoryForm = document.getElementById("categoryForm");
 const articlesList = document.getElementById("articlesList");
 const fullArticle = document.getElementById("fullArticle");
 const adminArticles = document.getElementById("adminArticles");
+const categorySelect = document.getElementById("categorySelect");
+const categoriesList = document.getElementById("categoriesList");
 
 let isAdmin = false;
 
@@ -26,12 +31,24 @@ function saveArticlesToLocalStorage(articles) {
   localStorage.setItem('articles', JSON.stringify(articles));
 }
 
+// Load and Save Categories
+function loadCategoriesFromLocalStorage() {
+  const storedCategories = localStorage.getItem('categories');
+  return storedCategories ? JSON.parse(storedCategories) : [];
+}
+
+function saveCategoriesToLocalStorage(categories) {
+  localStorage.setItem('categories', JSON.stringify(categories));
+}
+
 // Tab switching
 viewTab.addEventListener("click", () => {
   viewTab.classList.add("active");
   writeTab.classList.remove("active");
+  categoryTab.classList.remove("active");
   viewSection.classList.add("active");
   writeSection.classList.remove("active");
+  categorySection.classList.remove("active");
   history.pushState({ section: 'view' }, 'View Articles', '#view');
   displayArticles();
 });
@@ -52,10 +69,23 @@ writeTab.addEventListener("click", () => {
   }
   writeTab.classList.add("active");
   viewTab.classList.remove("active");
+  categoryTab.classList.remove("active");
   writeSection.classList.add("active");
   viewSection.classList.remove("active");
+  categorySection.classList.remove("active");
   history.pushState({ section: 'write' }, 'Write Article', '#write');
   displayAdminArticles();
+});
+
+categoryTab.addEventListener("click", () => {
+  categoryTab.classList.add("active");
+  writeTab.classList.remove("active");
+  viewTab.classList.remove("active");
+  categorySection.classList.add("active");
+  writeSection.classList.remove("active");
+  viewSection.classList.remove("active");
+  history.pushState({ section: 'category' }, 'Manage Categories', '#category');
+  displayCategories();
 });
 
 // Handle article submission
@@ -65,6 +95,7 @@ form.addEventListener("submit", function (e) {
   const content = document.getElementById("content").value;
   const imageInput = document.getElementById("imageUpload");
   const imageFile = imageInput.files[0];
+  const category = categorySelect.value;
 
   const articles = loadArticlesFromLocalStorage();
 
@@ -88,7 +119,8 @@ form.addEventListener("submit", function (e) {
           title,
           content,
           date: new Date().toISOString(),
-          image: base64Image
+          image: base64Image,
+          category
         };
 
         articles.push(newArticle);
@@ -106,7 +138,8 @@ form.addEventListener("submit", function (e) {
       title,
       content,
       date: new Date().toISOString(),
-      image: null
+      image: null,
+      category
     };
     articles.push(newArticle);
     saveArticlesToLocalStorage(articles);
@@ -157,7 +190,7 @@ window.viewFullArticle = function (index) {
   fullArticle.innerHTML = "";
 
   const containerDiv = document.createElement("div");
-  containerDiv.className = "article-container"; // New container
+  containerDiv.className = "article-container";
 
   const articleDiv = document.createElement("div");
   articleDiv.className = "article-full";
@@ -180,6 +213,10 @@ window.viewFullArticle = function (index) {
   const content = document.createElement("p");
   content.innerHTML = article.content.replace(/\n/g, "<br>");
   articleDiv.appendChild(content);
+
+  const category = document.createElement("p");
+  category.innerHTML = `<strong>Category:</strong> ${article.category}`;
+  articleDiv.appendChild(category);
 
   containerDiv.appendChild(articleDiv);
   fullArticle.appendChild(containerDiv);
@@ -216,30 +253,69 @@ window.deleteArticle = function (index) {
   displayAdminArticles();
 };
 
+// Manage Categories
+categoryForm.addEventListener("submit", function (e) {
+  e.preventDefault();
+  const categoryName = document.getElementById("newCategory").value.trim();
+  if (!categoryName) return;
+
+  const categories = loadCategoriesFromLocalStorage();
+  categories.push(categoryName);
+  saveCategoriesToLocalStorage(categories);
+
+  updateCategorySelect();
+  displayCategories();
+  alert("Category added!");
+  categoryForm.reset();
+});
+
+// Display Categories
+function displayCategories() {
+  categoriesList.innerHTML = "";
+  const categories = loadCategoriesFromLocalStorage();
+
+  categories.forEach(category => {
+    const div = document.createElement("div");
+    div.textContent = category;
+    categoriesList.appendChild(div);
+  });
+}
+
+// Update Category Select Dropdown
+function updateCategorySelect() {
+  categorySelect.innerHTML = "<option value=''>Select Category</option>";
+  const categories = loadCategoriesFromLocalStorage();
+
+  categories.forEach(category => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    categorySelect.appendChild(option);
+  });
+}
+
 // Format date
 function formatDate(dateString) {
   const date = new Date(dateString);
-  const options = { hour: 'numeric', minute: 'numeric', hour12: true };
-  const datePart = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
-  const timePart = date.toLocaleTimeString([], options);
-  return `${datePart} ${timePart}`;
+  const options = { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric', 
+    hour: 'numeric', 
+    minute: 'numeric', 
+    hour12: true 
+  };
+  return date.toLocaleString('en-US', options);
 }
 
-// Browser navigation
-window.addEventListener('popstate', (event) => {
-  if (event.state?.section === 'write') {
-    writeTab.click();
-  } else {
-    viewTab.click();
-  }
-});
-
-// Initial load
+// Initial setup for categories and article view
 window.onload = () => {
-  if (window.location.hash === '#write') {
+  updateCategorySelect();
+  if (window.location.hash === "#write") {
     writeTab.click();
+  } else if (window.location.hash === "#category") {
+    categoryTab.click();
   } else {
     viewTab.click();
   }
-  displayArticles();
 };
