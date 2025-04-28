@@ -6,6 +6,10 @@ const form = document.getElementById("articleForm");
 const articlesList = document.getElementById("articlesList");
 const fullArticle = document.getElementById("fullArticle");
 const adminArticles = document.getElementById("adminArticles");
+const createCategoryBtn = document.getElementById("createCategoryBtn");
+const newCategoryName = document.getElementById("newCategoryName");
+const categoryMessage = document.getElementById("categoryMessage");
+const categoryDropdown = document.getElementById("category");
 
 let isAdmin = false;
 
@@ -16,7 +20,7 @@ const adminAccounts = {
   "nokoreach": "nokoreach123"
 };
 
-// Load and Save Articles
+// Load and Save Articles and Categories
 function loadArticlesFromLocalStorage() {
   const storedArticles = localStorage.getItem('articles');
   return storedArticles ? JSON.parse(storedArticles) : [];
@@ -24,6 +28,15 @@ function loadArticlesFromLocalStorage() {
 
 function saveArticlesToLocalStorage(articles) {
   localStorage.setItem('articles', JSON.stringify(articles));
+}
+
+function loadCategoriesFromLocalStorage() {
+  const storedCategories = localStorage.getItem('categories');
+  return storedCategories ? JSON.parse(storedCategories) : [];
+}
+
+function saveCategoriesToLocalStorage(categories) {
+  localStorage.setItem('categories', JSON.stringify(categories));
 }
 
 // Tab switching
@@ -56,6 +69,7 @@ writeTab.addEventListener("click", () => {
   viewSection.classList.remove("active");
   history.pushState({ section: 'write' }, 'Write Article', '#write');
   displayAdminArticles();
+  loadCategories();
 });
 
 // Handle article submission
@@ -65,6 +79,12 @@ form.addEventListener("submit", function (e) {
   const content = document.getElementById("content").value;
   const imageInput = document.getElementById("imageUpload");
   const imageFile = imageInput.files[0];
+  const selectedCategory = categoryDropdown.value;
+
+  if (!selectedCategory) {
+    alert("Please select a category.");
+    return;
+  }
 
   const articles = loadArticlesFromLocalStorage();
 
@@ -87,6 +107,7 @@ form.addEventListener("submit", function (e) {
         const newArticle = {
           title,
           content,
+          category: selectedCategory,
           date: new Date().toISOString(),
           image: base64Image
         };
@@ -105,6 +126,7 @@ form.addEventListener("submit", function (e) {
     const newArticle = {
       title,
       content,
+      category: selectedCategory,
       date: new Date().toISOString(),
       image: null
     };
@@ -145,6 +167,11 @@ function displayArticles() {
     titleDiv.textContent = article.title;
     div.appendChild(titleDiv);
 
+    const categoryDiv = document.createElement("div");
+    categoryDiv.className = "article-category";
+    categoryDiv.textContent = `Category: ${article.category}`;
+    div.appendChild(categoryDiv);
+
     articlesList.appendChild(div);
   });
 }
@@ -157,7 +184,7 @@ window.viewFullArticle = function (index) {
   fullArticle.innerHTML = "";
 
   const containerDiv = document.createElement("div");
-  containerDiv.className = "article-container"; // New container
+  containerDiv.className = "article-container";
 
   const articleDiv = document.createElement("div");
   articleDiv.className = "article-full";
@@ -176,6 +203,10 @@ window.viewFullArticle = function (index) {
   const publishDate = document.createElement("p");
   publishDate.innerHTML = `<strong>Published:</strong> ${formatDate(article.date)}`;
   articleDiv.appendChild(publishDate);
+
+  const category = document.createElement("p");
+  category.innerHTML = `<strong>Category:</strong> ${article.category}`;
+  articleDiv.appendChild(category);
 
   const content = document.createElement("p");
   content.innerHTML = article.content.replace(/\n/g, "<br>");
@@ -221,25 +252,38 @@ function formatDate(dateString) {
   const date = new Date(dateString);
   const options = { hour: 'numeric', minute: 'numeric', hour12: true };
   const datePart = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
-  const timePart = date.toLocaleTimeString([], options);
+  const timePart = date.toLocaleTimeString('en-US', options);
   return `${datePart} ${timePart}`;
 }
 
-// Browser navigation
-window.addEventListener('popstate', (event) => {
-  if (event.state?.section === 'write') {
-    writeTab.click();
+// Create new category
+createCategoryBtn.addEventListener("click", () => {
+  const newCategory = newCategoryName.value.trim();
+  if (newCategory) {
+    const categories = loadCategoriesFromLocalStorage();
+    if (categories.includes(newCategory)) {
+      categoryMessage.textContent = "Category already exists!";
+    } else {
+      categories.push(newCategory);
+      saveCategoriesToLocalStorage(categories);
+      categoryMessage.textContent = "Category created successfully!";
+      loadCategories();
+      newCategoryName.value = "";
+    }
   } else {
-    viewTab.click();
+    categoryMessage.textContent = "Please enter a category name!";
   }
 });
 
-// Initial load
-window.onload = () => {
-  if (window.location.hash === '#write') {
-    writeTab.click();
-  } else {
-    viewTab.click();
-  }
-  displayArticles();
-};
+// Load categories into the dropdown
+function loadCategories() {
+  const categories = loadCategoriesFromLocalStorage();
+  categoryDropdown.innerHTML = "<option value=''>Select a category</option>";
+
+  categories.forEach((category) => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    categoryDropdown.appendChild(option);
+  });
+}
