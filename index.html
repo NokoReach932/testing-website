@@ -3,68 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Komnottra</title>
+  <title>Komnottra - Article Platform</title>
   <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
   <header>
-    <div class="header-container">
-      <!-- Replaced the title with the logo image -->
-      <img src="logo.png" alt="Komnottra Logo" class="logo">
-      <div id="menuToggle" class="menu-toggle">&#9776;</div>
-    </div>
+    <h1>Komnottra - Article Platform</h1>
+    <nav>
+      <button id="viewTab">View Articles</button>
+      <button id="writeTab">Write New Article</button>
+    </nav>
   </header>
 
-  <div id="overlay" class="overlay"></div>
+  <section id="viewSection" class="section">
+    <h2>Articles</h2>
+    <div id="articlesList"></div>
+  </section>
 
-  <nav id="sideMenu" class="side-menu">
-    <button id="viewTab" class="active">View Articles</button>
-    <button id="writeTab">Admin Write</button>
+  <section id="writeSection" class="section">
+    <h2>Write New Article</h2>
+    <form id="articleForm">
+      <input type="text" id="title" placeholder="Article Title" required>
+      <textarea id="content" rows="8" placeholder="Article Content" required></textarea>
+      <input type="file" id="imageUpload" accept="image/*">
+      
+      <!-- Category selection -->
+      <select id="category" required>
+        <option value="" disabled selected>Select Category</option>
+        <option value="Technology">Technology</option>
+        <option value="Health">Health</option>
+        <option value="Politics">Politics</option>
+        <option value="Sports">Sports</option>
+      </select>
 
-  </nav>
+      <button type="submit">Publish</button>
+    </form>
+    <div id="adminArticles"></div>
+  </section>
 
-  <div class="container">
-    <section id="viewSection" class="section active">
-      <h2>Published Articles</h2>
-      <div id="articlesList"></div>
-      <div id="fullArticle"></div>
-    </section>
-
-    <section id="writeSection" class="section">
-      <h2>Write New Article</h2>
-      <form id="articleForm">
-        <input type="text" id="title" placeholder="Article Title" required>
-        <textarea id="content" rows="8" placeholder="Article Content" required></textarea>
-        <input type="file" id="imageUpload" accept="image/*">
-        <button type="submit">Publish</button>
-      </form>
-      <div id="adminArticles"></div>
-    </section>
-  </div>
+  <section id="fullArticleSection" class="section">
+    <h2>Full Article</h2>
+    <div id="fullArticle"></div>
+  </section>
 
   <script src="script.js"></script>
-  <script>
-    const menuToggle = document.getElementById('menuToggle');
-    const sideMenu = document.getElementById('sideMenu');
-    const overlay = document.getElementById('overlay');
-
-    menuToggle.addEventListener('click', () => {
-      sideMenu.classList.toggle('open');
-      overlay.classList.toggle('active');
-    });
-
-    overlay.addEventListener('click', () => {
-      sideMenu.classList.remove('open');
-      overlay.classList.remove('active');
-    });
-
-    document.querySelectorAll('#sideMenu button').forEach(button => {
-      button.addEventListener('click', () => {
-        sideMenu.classList.remove('open');
-        overlay.classList.remove('active');
-      });
-    });
-  </script>
 </body>
 </html>
