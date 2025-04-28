@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Komnottra</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -10,7 +10,6 @@
 <body>
   <header>
     <div class="header-container">
-      <!-- Replaced the title with the logo image -->
       <img src="logo.png" alt="Komnottra Logo" class="logo">
       <div id="menuToggle" class="menu-toggle">&#9776;</div>
     </div>
@@ -19,15 +18,13 @@
   <div id="overlay" class="overlay"></div>
 
   <nav id="sideMenu" class="side-menu">
-    <button id="viewTab" class="active">ព័ត៌មានទូទៅ</button>
-    <button id="writeTab">other</button>
-    <button id="Entertainments">Entertainments</button>
-
+    <button id="viewTab" class="active" data-category="all">ព័ត៌មានទូទៅ</button>
+    <!-- Dynamic categories will be added here -->
   </nav>
 
   <div class="container">
     <section id="viewSection" class="section active">
-      <h2>Published Articles</h2>
+      <h2 id="categoryTitle">Published Articles</h2>
       <div id="articlesList"></div>
       <div id="fullArticle"></div>
     </section>
@@ -37,35 +34,21 @@
       <form id="articleForm">
         <input type="text" id="title" placeholder="Article Title" required>
         <textarea id="content" rows="8" placeholder="Article Content" required></textarea>
+        <select id="categorySelect" required></select>
         <input type="file" id="imageUpload" accept="image/*">
         <button type="submit">Publish</button>
       </form>
+
+      <div class="admin-controls">
+        <h3>Add New Category</h3>
+        <input type="text" id="newCategory" placeholder="New Category Name">
+        <button id="addCategoryBtn">Add Category</button>
+      </div>
+
       <div id="adminArticles"></div>
     </section>
   </div>
 
   <script src="script.js"></script>
-  <script>
-    const menuToggle = document.getElementById('menuToggle');
-    const sideMenu = document.getElementById('sideMenu');
-    const overlay = document.getElementById('overlay');
-
-    menuToggle.addEventListener('click', () => {
-      sideMenu.classList.toggle('open');
-      overlay.classList.toggle('active');
-    });
-
-    overlay.addEventListener('click', () => {
-      sideMenu.classList.remove('open');
-      overlay.classList.remove('active');
-    });
-
-    document.querySelectorAll('#sideMenu button').forEach(button => {
-      button.addEventListener('click', () => {
-        sideMenu.classList.remove('open');
-        overlay.classList.remove('active');
-      });
-    });
-  </script>
 </body>
 </html>
