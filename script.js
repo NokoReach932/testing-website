@@ -6,9 +6,16 @@ const form = document.getElementById("articleForm");
 const articlesList = document.getElementById("articlesList");
 const fullArticle = document.getElementById("fullArticle");
 const adminArticles = document.getElementById("adminArticles");
-const Entertainments = document.getElementById("writeTab");
+const sideMenu = document.getElementById("sideMenu");
+const overlay = document.getElementById("overlay");
+const menuToggle = document.getElementById("menuToggle");
+const categoryTitle = document.getElementById("categoryTitle");
+const categorySelect = document.getElementById("categorySelect");
+const addCategoryBtn = document.getElementById("addCategoryBtn");
+const newCategoryInput = document.getElementById("newCategory");
 
 let isAdmin = false;
+let currentCategory = "all";
 
 // Admin credentials
 const adminAccounts = {
@@ -17,56 +24,82 @@ const adminAccounts = {
   "nokoreach": "nokoreach123"
 };
 
-// Load and Save Articles
+// --- Load/Save Articles and Categories ---
 function loadArticlesFromLocalStorage() {
-  const storedArticles = localStorage.getItem('articles');
-  return storedArticles ? JSON.parse(storedArticles) : [];
+  const stored = localStorage.getItem('articles');
+  return stored ? JSON.parse(stored) : [];
 }
 
 function saveArticlesToLocalStorage(articles) {
   localStorage.setItem('articles', JSON.stringify(articles));
 }
 
-// Tab switching
+function loadCategoriesFromLocalStorage() {
+  const stored = localStorage.getItem('categories');
+  return stored ? JSON.parse(stored) : ["ព័ត៌មានទូទៅ"];
+}
+
+function saveCategoriesToLocalStorage(categories) {
+  localStorage.setItem('categories', JSON.stringify(categories));
+}
+
+// --- Tab switching ---
 viewTab.addEventListener("click", () => {
-  viewTab.classList.add("active");
-  writeTab.classList.remove("active");
-  viewSection.classList.add("active");
-  writeSection.classList.remove("active");
-  history.pushState({ section: 'view' }, 'View Articles', '#view');
-  displayArticles();
+  switchToView();
 });
 
-writeTab.addEventListener("click", () => {
-  if (!isAdmin) {
-    const inputUser = prompt("Enter admin username:");
-    const inputPass = prompt("Enter admin password:");
-    const normalizedUser = inputUser.trim().toLowerCase();
+function switchToView() {
+  viewTab.classList.add("active");
+  writeTab?.classList.remove("active");
+  viewSection.classList.add("active");
+  writeSection.classList.remove("active");
+  history.pushState({ section: 'view' }, '', '#view');
+  displayArticles();
+}
 
-    if (adminAccounts[normalizedUser] && adminAccounts[normalizedUser] === inputPass) {
+document.getElementById("writeTab")?.addEventListener("click", () => {
+  if (!isAdmin) {
+    const username = prompt("Enter admin username:");
+    const password = prompt("Enter admin password:");
+    const normalized = username.trim().toLowerCase();
+
+    if (adminAccounts[normalized] && adminAccounts[normalized] === password) {
       isAdmin = true;
-      alert("Welcome, Admin!");
+      alert("Welcome Admin!");
     } else {
       alert("Incorrect credentials.");
       return;
     }
   }
+
   writeTab.classList.add("active");
   viewTab.classList.remove("active");
   writeSection.classList.add("active");
   viewSection.classList.remove("active");
-  history.pushState({ section: 'write' }, 'Write Article', '#write');
+  history.pushState({ section: 'write' }, '', '#write');
+  populateCategorySelect();
   displayAdminArticles();
 });
 
-// Handle article submission
+// --- Mobile Menu ---
+menuToggle.addEventListener('click', () => {
+  sideMenu.classList.toggle('open');
+  overlay.classList.toggle('active');
+});
+
+overlay.addEventListener('click', () => {
+  sideMenu.classList.remove('open');
+  overlay.classList.remove('active');
+});
+
+// --- Article submission ---
 form.addEventListener("submit", function (e) {
   e.preventDefault();
   const title = document.getElementById("title").value;
   const content = document.getElementById("content").value;
+  const category = categorySelect.value;
   const imageInput = document.getElementById("imageUpload");
   const imageFile = imageInput.files[0];
-
   const articles = loadArticlesFromLocalStorage();
 
   if (imageFile) {
@@ -76,26 +109,17 @@ form.addEventListener("submit", function (e) {
       img.onload = function () {
         const canvas = document.createElement('canvas');
         const maxWidth = 800;
-        const scaleSize = maxWidth / img.width;
+        const scale = maxWidth / img.width;
         canvas.width = maxWidth;
-        canvas.height = img.height * scaleSize;
-
+        canvas.height = img.height * scale;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
         const base64Image = canvas.toDataURL('image/jpeg', 0.7);
 
-        const newArticle = {
-          title,
-          content,
-          date: new Date().toISOString(),
-          image: base64Image
-        };
-
+        const newArticle = { title, content, category, date: new Date().toISOString(), image: base64Image };
         articles.push(newArticle);
         saveArticlesToLocalStorage(articles);
-
-        alert("Article published successfully!");
+        alert("Article published!");
         form.reset();
         viewTab.click();
       };
@@ -103,33 +127,58 @@ form.addEventListener("submit", function (e) {
     };
     reader.readAsDataURL(imageFile);
   } else {
-    const newArticle = {
-      title,
-      content,
-      date: new Date().toISOString(),
-      image: null
-    };
+    const newArticle = { title, content, category, date: new Date().toISOString(), image: null };
     articles.push(newArticle);
     saveArticlesToLocalStorage(articles);
-
-    alert("Article published successfully!");
+    alert("Article published!");
     form.reset();
     viewTab.click();
   }
 });
 
-// Display articles
+// --- Add new category ---
+addCategoryBtn.addEventListener("click", () => {
+  const newCat = newCategoryInput.value.trim();
+  if (!newCat) return alert("Please enter category name.");
+
+  const categories = loadCategoriesFromLocalStorage();
+  if (categories.includes(newCat)) return alert("Category already exists.");
+
+  categories.push(newCat);
+  saveCategoriesToLocalStorage(categories);
+  renderSideMenu();
+  populateCategorySelect();
+  newCategoryInput.value = "";
+});
+
+// --- Populate category select in admin form ---
+function populateCategorySelect() {
+  categorySelect.innerHTML = "";
+  const categories = loadCategoriesFromLocalStorage();
+  categories.forEach(cat => {
+    const option = document.createElement("option");
+    option.value = cat;
+    option.textContent = cat;
+    categorySelect.appendChild(option);
+  });
+}
+
+// --- Display Articles ---
 function displayArticles() {
   articlesList.innerHTML = "";
   fullArticle.innerHTML = "";
-
   const articles = loadArticlesFromLocalStorage();
 
-  if (articles.length === 0) {
-    console.log("No articles available.");
+  const filtered = currentCategory === "all"
+    ? articles
+    : articles.filter(article => article.category === currentCategory);
+
+  if (filtered.length === 0) {
+    articlesList.innerHTML = "<p>No articles available in this category.</p>";
+    return;
   }
 
-  articles.forEach((article, index) => {
+  filtered.forEach((article, index) => {
     const div = document.createElement("div");
     div.className = "article-preview";
     div.setAttribute("onclick", `viewFullArticle(${index})`);
@@ -137,7 +186,6 @@ function displayArticles() {
     if (article.image) {
       const img = document.createElement("img");
       img.src = article.image;
-      img.alt = "Article Image";
       div.appendChild(img);
     }
 
@@ -150,15 +198,16 @@ function displayArticles() {
   });
 }
 
-// View full article
+// --- View Full Article ---
 window.viewFullArticle = function (index) {
   const articles = loadArticlesFromLocalStorage();
-  const article = articles[index];
+  const article = currentCategory === "all"
+    ? articles[index]
+    : articles.filter(a => a.category === currentCategory)[index];
 
   fullArticle.innerHTML = "";
-
-  const containerDiv = document.createElement("div");
-  containerDiv.className = "article-container"; // New container
+  const container = document.createElement("div");
+  container.className = "article-container";
 
   const articleDiv = document.createElement("div");
   articleDiv.className = "article-full";
@@ -166,7 +215,6 @@ window.viewFullArticle = function (index) {
   if (article.image) {
     const img = document.createElement("img");
     img.src = article.image;
-    img.alt = "Article Image";
     articleDiv.appendChild(img);
   }
 
@@ -182,12 +230,12 @@ window.viewFullArticle = function (index) {
   content.innerHTML = article.content.replace(/\n/g, "<br>");
   articleDiv.appendChild(content);
 
-  containerDiv.appendChild(articleDiv);
-  fullArticle.appendChild(containerDiv);
+  container.appendChild(articleDiv);
+  fullArticle.appendChild(container);
   articlesList.innerHTML = "";
 };
 
-// Admin view
+// --- Admin View Articles ---
 function displayAdminArticles() {
   adminArticles.innerHTML = "";
   const articles = loadArticlesFromLocalStorage();
@@ -196,51 +244,71 @@ function displayAdminArticles() {
     const div = document.createElement("div");
     div.innerHTML = `
       <hr>
-      <strong>${article.title}</strong>
+      <strong>${article.title} (${article.category})</strong>
       <button class="delete-btn" onclick="deleteArticle(${index})">Delete</button>
     `;
     adminArticles.appendChild(div);
   });
 }
 
-// Delete article
+// --- Delete Article ---
 window.deleteArticle = function (index) {
   if (!isAdmin) return;
-  if (!confirm("Are you sure you want to delete this article?")) return;
+  if (!confirm("Delete this article?")) return;
 
   const articles = loadArticlesFromLocalStorage();
   articles.splice(index, 1);
   saveArticlesToLocalStorage(articles);
 
-  alert("Article deleted successfully.");
+  alert("Article deleted.");
   displayArticles();
   displayAdminArticles();
 };
 
-// Format date
-function formatDate(dateString) {
-  const date = new Date(dateString);
+// --- Format Date ---
+function formatDate(dateStr) {
+  const date = new Date(dateStr);
   const options = { hour: 'numeric', minute: 'numeric', hour12: true };
-  const datePart = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
-  const timePart = date.toLocaleTimeString([], options);
-  return `${datePart} ${timePart}`;
+  return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear()} ${date.toLocaleTimeString([], options)}`;
 }
 
-// Browser navigation
-window.addEventListener('popstate', (event) => {
-  if (event.state?.section === 'write') {
-    writeTab.click();
-  } else {
-    viewTab.click();
-  }
-});
+// --- Dynamic Side Menu ---
+function renderSideMenu() {
+  sideMenu.innerHTML = "";
+  const defaultButton = document.createElement("button");
+  defaultButton.id = "viewTab";
+  defaultButton.className = "active";
+  defaultButton.textContent = "ព័ត៌មានទូទៅ";
+  defaultButton.setAttribute("data-category", "all");
+  sideMenu.appendChild(defaultButton);
 
-// Initial load
+  const categories = loadCategoriesFromLocalStorage();
+  categories.forEach(cat => {
+    const button = document.createElement("button");
+    button.textContent = cat;
+    button.setAttribute("data-category", cat);
+    sideMenu.appendChild(button);
+  });
+
+  sideMenu.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentCategory = btn.getAttribute("data-category");
+      categoryTitle.textContent = currentCategory === "all" ? "Published Articles" : currentCategory;
+      sideMenu.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      switchToView();
+    });
+  });
+}
+
+// --- Load initially ---
 window.onload = () => {
+  renderSideMenu();
+  populateCategorySelect();
   if (window.location.hash === '#write') {
-    writeTab.click();
+    writeTab?.click();
   } else {
-    viewTab.click();
+    viewTab?.click();
   }
   displayArticles();
 };
