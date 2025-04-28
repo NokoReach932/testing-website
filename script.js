@@ -6,6 +6,7 @@ const form = document.getElementById("articleForm");
 const articlesList = document.getElementById("articlesList");
 const fullArticle = document.getElementById("fullArticle");
 const adminArticles = document.getElementById("adminArticles");
+const Entertainments = document.getElementById("writeTab");
 
 let isAdmin = false;
 
