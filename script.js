@@ -6,6 +6,10 @@ const form = document.getElementById("articleForm");
 const articlesList = document.getElementById("articlesList");
 const fullArticle = document.getElementById("fullArticle");
 const adminArticles = document.getElementById("adminArticles");
+const categoryForm = document.getElementById("categoryForm");
+const categoryNameInput = document.getElementById("categoryName");
+const categoriesList = document.getElementById("categoriesList");
+const categorySelect = document.getElementById("categorySelect");
 
 let isAdmin = false;
 
@@ -17,14 +21,64 @@ const adminAccounts = {
 };
 
 // Load and Save Articles
-function loadArticlesFromLocalStorage() {
+function loadArticles() {
   const storedArticles = localStorage.getItem('articles');
   return storedArticles ? JSON.parse(storedArticles) : [];
 }
 
-function saveArticlesToLocalStorage(articles) {
+function saveArticles(articles) {
   localStorage.setItem('articles', JSON.stringify(articles));
 }
+
+// Load and Save Categories
+function loadCategories() {
+  const storedCategories = localStorage.getItem('categories');
+  return storedCategories ? JSON.parse(storedCategories) : [];
+}
+
+function saveCategories(categories) {
+  localStorage.setItem('categories', JSON.stringify(categories));
+}
+
+// Display Categories in Select
+function populateCategorySelect() {
+  const categories = loadCategories();
+  categorySelect.innerHTML = `<option value="" disabled selected>Select Category</option>`;
+  categories.forEach(cat => {
+    const option = document.createElement('option');
+    option.value = cat;
+    option.textContent = cat;
+    categorySelect.appendChild(option);
+  });
+}
+
+// Display Categories in Admin Section
+function displayCategoriesList() {
+  const categories = loadCategories();
+  categoriesList.innerHTML = "";
+
+  categories.forEach((cat, index) => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <strong>${cat}</strong> 
+      <button class="delete-btn" onclick="deleteCategory(${index})">Delete</button>
+    `;
+    categoriesList.appendChild(div);
+  });
+}
+
+// Delete Category
+window.deleteCategory = function(index) {
+  if (!isAdmin) return;
+  if (!confirm("Delete this category?")) return;
+
+  const categories = loadCategories();
+  categories.splice(index, 1);
+  saveCategories(categories);
+  populateCategorySelect();
+  displayCategoriesList();
+  alert("Category deleted.");
+};
 
 // Tab switching
 viewTab.addEventListener("click", () => {
@@ -56,6 +110,8 @@ writeTab.addEventListener("click", () => {
   viewSection.classList.remove("active");
   history.pushState({ section: 'write' }, 'Write Article', '#write');
   displayAdminArticles();
+  populateCategorySelect();
+  displayCategoriesList();
 });
 
 // Handle article submission
@@ -63,10 +119,11 @@ form.addEventListener("submit", function (e) {
   e.preventDefault();
   const title = document.getElementById("title").value;
   const content = document.getElementById("content").value;
+  const category = categorySelect.value;
   const imageInput = document.getElementById("imageUpload");
   const imageFile = imageInput.files[0];
 
-  const articles = loadArticlesFromLocalStorage();
+  const articles = loadArticles();
 
   if (imageFile) {
     const reader = new FileReader();
@@ -87,12 +144,13 @@ form.addEventListener("submit", function (e) {
         const newArticle = {
           title,
           content,
+          category,
           date: new Date().toISOString(),
           image: base64Image
         };
 
         articles.push(newArticle);
-        saveArticlesToLocalStorage(articles);
+        saveArticles(articles);
 
         alert("Article published successfully!");
         form.reset();
@@ -105,11 +163,12 @@ form.addEventListener("submit", function (e) {
     const newArticle = {
       title,
       content,
+      category,
       date: new Date().toISOString(),
       image: null
     };
     articles.push(newArticle);
-    saveArticlesToLocalStorage(articles);
+    saveArticles(articles);
 
     alert("Article published successfully!");
     form.reset();
@@ -117,12 +176,32 @@ form.addEventListener("submit", function (e) {
   }
 });
 
+// Handle category submission
+categoryForm.addEventListener("submit", function(e) {
+  e.preventDefault();
+  const newCategory = categoryNameInput.value.trim();
+  if (!newCategory) return;
+
+  const categories = loadCategories();
+  if (categories.includes(newCategory)) {
+    alert("Category already exists.");
+    return;
+  }
+
+  categories.push(newCategory);
+  saveCategories(categories);
+  populateCategorySelect();
+  displayCategoriesList();
+  categoryForm.reset();
+  alert("Category added.");
+});
+
 // Display articles
 function displayArticles() {
   articlesList.innerHTML = "";
   fullArticle.innerHTML = "";
 
-  const articles = loadArticlesFromLocalStorage();
+  const articles = loadArticles();
 
   if (articles.length === 0) {
     console.log("No articles available.");
@@ -151,13 +230,13 @@ function displayArticles() {
 
 // View full article
 window.viewFullArticle = function (index) {
-  const articles = loadArticlesFromLocalStorage();
+  const articles = loadArticles();
   const article = articles[index];
 
   fullArticle.innerHTML = "";
 
   const containerDiv = document.createElement("div");
-  containerDiv.className = "article-container"; // New container
+  containerDiv.className = "article-container";
 
   const articleDiv = document.createElement("div");
   articleDiv.className = "article-full";
@@ -172,6 +251,10 @@ window.viewFullArticle = function (index) {
   const title = document.createElement("h2");
   title.textContent = article.title;
   articleDiv.appendChild(title);
+
+  const category = document.createElement("p");
+  category.innerHTML = `<strong>Category:</strong> ${article.category || 'Uncategorized'}`;
+  articleDiv.appendChild(category);
 
   const publishDate = document.createElement("p");
   publishDate.innerHTML = `<strong>Published:</strong> ${formatDate(article.date)}`;
@@ -189,13 +272,13 @@ window.viewFullArticle = function (index) {
 // Admin view
 function displayAdminArticles() {
   adminArticles.innerHTML = "";
-  const articles = loadArticlesFromLocalStorage();
+  const articles = loadArticles();
 
   articles.forEach((article, index) => {
     const div = document.createElement("div");
     div.innerHTML = `
       <hr>
-      <strong>${article.title}</strong>
+      <strong>${article.title}</strong> 
       <button class="delete-btn" onclick="deleteArticle(${index})">Delete</button>
     `;
     adminArticles.appendChild(div);
@@ -207,9 +290,9 @@ window.deleteArticle = function (index) {
   if (!isAdmin) return;
   if (!confirm("Are you sure you want to delete this article?")) return;
 
-  const articles = loadArticlesFromLocalStorage();
+  const articles = loadArticles();
   articles.splice(index, 1);
-  saveArticlesToLocalStorage(articles);
+  saveArticles(articles);
 
   alert("Article deleted successfully.");
   displayArticles();
@@ -242,4 +325,5 @@ window.onload = () => {
     viewTab.click();
   }
   displayArticles();
+  populateCategorySelect();
 };
