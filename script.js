@@ -17,6 +17,10 @@ const categoryNav = document.getElementById("categoryNav");
 
 let isAdmin = false;
 let categories = [];
+const adminAccounts = {
+  // Sample admin credentials for testing purposes
+  'admin': 'password123' // Replace with actual admin credentials or a secure method
+};
 
 // Backend API URL (Replace with your Render API URL)
 const API_URL = "https://komnottra-backend.onrender.com";
