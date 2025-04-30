@@ -18,33 +18,59 @@ const categoryNav = document.getElementById("categoryNav");
 let isAdmin = false;
 let categories = [];
 
-const adminAccounts = {
-  "chivorn": "chivorn123",
-  "phirun": "phirun123",
-  "nokoreach": "nokoreach123"
-};
+// Backend API URL (Replace with your Render API URL)
+const API_URL = "https://komnottra-backend.onrender.com";
 
-// === Storage Functions ===
-function loadArticlesFromLocalStorage() {
-  const stored = localStorage.getItem('articles');
-  return stored ? JSON.parse(stored) : [];
+// === Helper Functions ===
+async function fetchArticles() {
+  const response = await fetch(`${API_URL}/articles`);
+  if (!response.ok) throw new Error("Failed to fetch articles");
+  return await response.json();
 }
 
-function saveArticlesToLocalStorage(articles) {
-  localStorage.setItem('articles', JSON.stringify(articles));
+async function saveArticleToBackend(article) {
+  const response = await fetch(`${API_URL}/articles`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(article),
+  });
+  if (!response.ok) throw new Error("Failed to save article");
+  return await response.json();
 }
 
-function loadCategoriesFromLocalStorage() {
-  const stored = localStorage.getItem('categories');
-  return stored ? JSON.parse(stored) : [];
+async function deleteArticleFromBackend(id) {
+  const response = await fetch(`${API_URL}/articles/${id}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error("Failed to delete article");
+  return await response.json();
 }
 
-function saveCategoriesToLocalStorage() {
-  localStorage.setItem('categories', JSON.stringify(categories));
+async function fetchCategories() {
+  const response = await fetch(`${API_URL}/categories`);
+  if (!response.ok) throw new Error("Failed to fetch categories");
+  return await response.json();
+}
+
+async function saveCategoryToBackend(category) {
+  const response = await fetch(`${API_URL}/categories`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ category }),
+  });
+  if (!response.ok) throw new Error("Failed to save category");
+  return await response.json();
+}
+
+async function deleteCategoryFromBackend(category) {
+  const response = await fetch(`${API_URL}/categories/${category}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) throw new Error("Failed to delete category");
+  return await response.json();
 }
 
 // === Category UI Management ===
-function updateCategorySelect() {
+async function updateCategorySelect() {
+  categories = await fetchCategories();
   categorySelect.innerHTML = '<option value="" disabled selected>Select Category (Optional)</option>';
   deleteCategorySelect.innerHTML = '<option disabled selected>Select Category to Delete</option>';
   categoryNav.innerHTML = ''; // Clear existing category nav buttons
@@ -70,8 +96,8 @@ function updateCategorySelect() {
 }
 
 // === Handle Category Filtering ===
-function filterArticlesByCategory(category) {
-  const articles = loadArticlesFromLocalStorage();
+async function filterArticlesByCategory(category) {
+  const articles = await fetchArticles();
   const filteredArticles = articles.filter(article => article.category === category);
   fullArticle.innerHTML = ""; // Ensure full article view is cleared
   displayFilteredArticles(filteredArticles);
@@ -85,15 +111,9 @@ function displayFilteredArticles(articles) {
   categoryDiv.className = "category";
 
   articles.forEach(article => {
-    const index = loadArticlesFromLocalStorage().findIndex(a =>
-      a.title === article.title &&
-      a.date === article.date &&
-      a.content === article.content
-    );
-
     const div = document.createElement("div");
     div.className = "article-preview card";
-    div.setAttribute("data-index", index);
+    div.setAttribute("data-index", article.id);
 
     if (article.image) {
       const img = document.createElement("img");
@@ -114,14 +134,17 @@ function displayFilteredArticles(articles) {
 }
 
 // === Create/Delete Category ===
-createCategoryBtn.addEventListener("click", () => {
+createCategoryBtn.addEventListener("click", async () => {
   const newCategory = newCategoryInput.value.trim();
   if (newCategory && !categories.includes(newCategory)) {
-    categories.push(newCategory);
-    saveCategoriesToLocalStorage();
-    updateCategorySelect();
-    alert("Category created successfully!");
-    newCategoryInput.value = "";
+    try {
+      await saveCategoryToBackend(newCategory);
+      alert("Category created successfully!");
+      newCategoryInput.value = "";
+      updateCategorySelect();
+    } catch (error) {
+      alert("Error creating category: " + error.message);
+    }
   } else if (!newCategory) {
     alert("Category name is required.");
   } else {
@@ -129,7 +152,7 @@ createCategoryBtn.addEventListener("click", () => {
   }
 });
 
-deleteCategoryBtn.addEventListener("click", () => {
+deleteCategoryBtn.addEventListener("click", async () => {
   const selectedCategory = deleteCategorySelect.value;
   if (!selectedCategory) {
     alert("Please select a category to delete.");
@@ -138,10 +161,13 @@ deleteCategoryBtn.addEventListener("click", () => {
 
   if (!confirm(`Are you sure you want to delete the category "${selectedCategory}"?`)) return;
 
-  categories = categories.filter(cat => cat !== selectedCategory);
-  saveCategoriesToLocalStorage();
-  updateCategorySelect();
-  alert("Category deleted successfully.");
+  try {
+    await deleteCategoryFromBackend(selectedCategory);
+    alert("Category deleted successfully.");
+    updateCategorySelect();
+  } catch (error) {
+    alert("Error deleting category: " + error.message);
+  }
 });
 
 // === Tab Switching ===
@@ -178,16 +204,15 @@ writeTab.addEventListener("click", () => {
 });
 
 // === Handle Article Submission ===
-form.addEventListener("submit", function (e) {
+form.addEventListener("submit", async function (e) {
   e.preventDefault();
   const title = document.getElementById("title").value;
   const content = document.getElementById("content").value;
   const category = categorySelect.value || "";
   const imageInput = document.getElementById("imageUpload");
   const imageFile = imageInput.files[0];
-  const articles = loadArticlesFromLocalStorage();
 
-  const createAndSave = (base64Image) => {
+  const createAndSave = async (base64Image) => {
     const newArticle = {
       title,
       content,
@@ -195,11 +220,15 @@ form.addEventListener("submit", function (e) {
       date: new Date().toISOString(),
       image: base64Image || null
     };
-    articles.push(newArticle);
-    saveArticlesToLocalStorage(articles);
-    alert("Article published successfully!");
-    form.reset();
-    viewTab.click();
+
+    try {
+      await saveArticleToBackend(newArticle);
+      alert("Article published successfully!");
+      form.reset();
+      viewTab.click();
+    } catch (error) {
+      alert("Error saving article: " + error.message);
+    }
   };
 
   if (imageFile) {
@@ -226,10 +255,10 @@ form.addEventListener("submit", function (e) {
 });
 
 // === Display Functions ===
-function displayArticles() {
+async function displayArticles() {
   articlesList.innerHTML = "";
   fullArticle.innerHTML = "";
-  const articles = loadArticlesFromLocalStorage();
+  const articles = await fetchArticles();
 
   const categorizedArticles = categories.map(category => ({
     category,
@@ -241,15 +270,9 @@ function displayArticles() {
     categoryDiv.className = "category";
 
     group.articles.forEach(article => {
-      const index = articles.findIndex(a =>
-        a.title === article.title &&
-        a.date === article.date &&
-        a.content === article.content
-      );
-
       const div = document.createElement("div");
       div.className = "article-preview card";
-      div.setAttribute("data-index", index);
+      div.setAttribute("data-index", article.id);
 
       if (article.image) {
         const img = document.createElement("img");
@@ -270,102 +293,40 @@ function displayArticles() {
   });
 }
 
-articlesList.addEventListener("click", function (event) {
-  const card = event.target.closest(".article-preview.card");
-  if (card && card.hasAttribute("data-index")) {
-    const index = parseInt(card.getAttribute("data-index"), 10);
-    if (!isNaN(index)) viewFullArticle(index);
-  }
-});
-
-function viewFullArticle(index) {
-  const articles = loadArticlesFromLocalStorage();
-  const article = articles[index];
-  if (!article) return;
-
-  fullArticle.innerHTML = "";
-
-  const containerDiv = document.createElement("div");
-  containerDiv.className = "article-container";
-
-  const articleDiv = document.createElement("div");
-  articleDiv.className = "article-full";
-
-  if (article.image) {
-    const img = document.createElement("img");
-    img.src = article.image;
-    img.alt = "Article Image";
-    articleDiv.appendChild(img);
-  }
-
-  const title = document.createElement("h2");
-  title.textContent = article.title;
-  articleDiv.appendChild(title);
-
-  const publishDate = document.createElement("p");
-  publishDate.innerHTML = `<strong>Published:</strong> ${formatDate(article.date)}`;
-  articleDiv.appendChild(publishDate);
-
-  const content = document.createElement("p");
-  content.innerHTML = article.content.replace(/\n/g, "<br>");
-  articleDiv.appendChild(content);
-
-  containerDiv.appendChild(articleDiv);
-  fullArticle.appendChild(containerDiv);
-  articlesList.innerHTML = "";
-}
-
-function displayAdminArticles() {
+async function displayAdminArticles() {
   adminArticles.innerHTML = "";
-  const articles = loadArticlesFromLocalStorage();
+  const articles = await fetchArticles();
 
-  articles.forEach((article, index) => {
+  articles.forEach((article) => {
     const div = document.createElement("div");
     div.innerHTML =
       `<hr>
       <strong>${article.title}</strong>
-      <button class="delete-btn" data-delete-index="${index}">Delete</button>`;
+      <button class="delete-btn" data-delete-id="${article.id}">Delete</button>`;
     adminArticles.appendChild(div);
   });
 }
 
-adminArticles.addEventListener("click", function (event) {
-  const btn = event.target.closest("button[data-delete-index]");
+adminArticles.addEventListener("click", async function (event) {
+  const btn = event.target.closest("button[data-delete-id]");
   if (!btn || !isAdmin) return;
 
-  const index = parseInt(btn.getAttribute("data-delete-index"), 10);
-  if (isNaN(index)) return;
+  const id = btn.getAttribute("data-delete-id");
 
   if (!confirm("Are you sure you want to delete this article?")) return;
 
-  const articles = loadArticlesFromLocalStorage();
-  articles.splice(index, 1);
-  saveArticlesToLocalStorage(articles);
-
-  alert("Article deleted successfully.");
-  displayArticles();
-  displayAdminArticles();
-});
-
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  const options = { hour: 'numeric', minute: 'numeric', hour12: true };
-  const datePart = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
-  const timePart = date.toLocaleTimeString([], options);
-  return `${datePart} ${timePart}`;
-}
-
-window.addEventListener('popstate', (event) => {
-  if (event.state?.section === 'write') {
-    writeTab.click();
-  } else {
-    viewTab.click();
+  try {
+    await deleteArticleFromBackend(id);
+    alert("Article deleted successfully.");
+    displayArticles();
+    displayAdminArticles();
+  } catch (error) {
+    alert("Error deleting article: " + error.message);
   }
 });
 
-window.onload = () => {
-  categories = loadCategoriesFromLocalStorage();
-  updateCategorySelect();
+window.onload = async () => {
+  await updateCategorySelect();
   if (window.location.hash === '#write') {
     writeTab.click();
   } else {
