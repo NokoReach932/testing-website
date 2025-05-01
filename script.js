@@ -22,8 +22,8 @@ const adminAccounts = {
   'admin': 'password123' // Replace with actual admin credentials or a secure method
 };
 
-// Backend API URL (Replace with your Render API URL)
-const API_URL = "https://komnottra-backend.onrender.com";
+// Backend API URL (Update to your Render backend URL)
+const API_URL = "https://komnottra-backend.onrender.com";  // Make sure this is correct
 
 // === Helper Functions ===
 async function fetchArticles() {
@@ -297,43 +297,21 @@ async function displayArticles() {
   });
 }
 
+// === Admin Articles Management ===
 async function displayAdminArticles() {
-  adminArticles.innerHTML = "";
   const articles = await fetchArticles();
-
-  articles.forEach((article) => {
+  articlesList.innerHTML = "";
+  fullArticle.innerHTML = "";
+  articles.forEach(article => {
     const div = document.createElement("div");
-    div.innerHTML =
-      `<hr>
-      <strong>${article.title}</strong>
-      <button class="delete-btn" data-delete-id="${article.id}">Delete</button>`;
-    adminArticles.appendChild(div);
+    div.className = "article-preview card";
+    div.setAttribute("data-id", article.id);
+    div.textContent = article.title;
+    articlesList.appendChild(div);
+
+    div.addEventListener("click", function () {
+      fullArticle.innerHTML = article.content;
+      fullArticle.classList.add("full-article");
+    });
   });
 }
-
-adminArticles.addEventListener("click", async function (event) {
-  const btn = event.target.closest("button[data-delete-id]");
-  if (!btn || !isAdmin) return;
-
-  const id = btn.getAttribute("data-delete-id");
-
-  if (!confirm("Are you sure you want to delete this article?")) return;
-
-  try {
-    await deleteArticleFromBackend(id);
-    alert("Article deleted successfully.");
-    displayArticles();
-    displayAdminArticles();
-  } catch (error) {
-    alert("Error deleting article: " + error.message);
-  }
-});
-
-window.onload = async () => {
-  await updateCategorySelect();
-  if (window.location.hash === '#write') {
-    writeTab.click();
-  } else {
-    viewTab.click();
-  }
-};
