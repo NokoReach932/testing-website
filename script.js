@@ -1,3 +1,5 @@
+const API_BASE = "https://komnottra-backend.onrender.com"; // Replace with your actual Render backend URL
+
 const writeTab = document.getElementById("writeTab");
 const viewTab = document.getElementById("viewTab");
 const writeSection = document.getElementById("writeSection");
@@ -10,18 +12,53 @@ const adminArticles = document.getElementById("adminArticles");
 let isAdmin = false;
 const adminUsername = "admin";
 const adminPassword = "123";
+let articleData = [];
 
-// === Backend API URL ===
-const API_URL = "https://komnottra-backend.onrender.com";
+// === Load Articles from Backend ===
+async function fetchArticles() {
+  try {
+    const res = await fetch(`${API_BASE}/articles`);
+    articleData = await res.json();
+    return articleData;
+  } catch (err) {
+    console.error("Failed to fetch articles", err);
+    return [];
+  }
+}
 
-// === View/Write Tab Logic ===
-viewTab.addEventListener("click", () => {
+// === Save Article to Backend ===
+async function saveArticleToBackend(article) {
+  try {
+    const res = await fetch(`${API_BASE}/articles`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(article),
+    });
+    return await res.json();
+  } catch (err) {
+    console.error("Failed to save article", err);
+  }
+}
+
+// === Delete Article from Backend ===
+async function deleteArticleFromBackend(id) {
+  try {
+    const res = await fetch(`${API_BASE}/articles/${id}`, {
+      method: "DELETE",
+    });
+    return await res.json();
+  } catch (err) {
+    console.error("Failed to delete article", err);
+  }
+}
+
+viewTab.addEventListener("click", async () => {
   viewTab.classList.add("active");
   writeTab.classList.remove("active");
   viewSection.classList.add("active");
   writeSection.classList.remove("active");
   history.pushState({ section: 'view' }, 'View Articles', '#view');
-  fetchArticles();
+  await displayArticles();
 });
 
 writeTab.addEventListener("click", () => {
@@ -41,10 +78,9 @@ writeTab.addEventListener("click", () => {
   writeSection.classList.add("active");
   viewSection.classList.remove("active");
   history.pushState({ section: 'write' }, 'Write Article', '#write');
-  fetchAdminArticles();
+  displayAdminArticles();
 });
 
-// === Submit Article ===
 form.addEventListener("submit", async function (e) {
   e.preventDefault();
   const title = document.getElementById("title").value;
@@ -52,87 +88,49 @@ form.addEventListener("submit", async function (e) {
   const imageInput = document.getElementById("imageUpload");
   const imageFile = imageInput.files[0];
 
-  let base64Image = null;
+  let imageDataURL = null;
   if (imageFile) {
-    base64Image = await toBase64(imageFile);
+    imageDataURL = await convertImageToBase64(imageFile);
   }
 
-  const article = {
+  const newArticle = {
     title,
     content,
     date: new Date().toISOString(),
-    image: base64Image
+    image: imageDataURL,
   };
 
-  try {
-    const res = await fetch(`${API_URL}/articles`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(article)
-    });
-
-    if (res.ok) {
-      alert("Article published successfully!");
-      form.reset();
-      viewTab.click();
-    } else {
-      const data = await res.json();
-      alert(`Error: ${data.message}`);
-    }
-  } catch (err) {
-    alert("Failed to publish article.");
-    console.error(err);
-  }
+  await saveArticleToBackend(newArticle);
+  alert("Article published successfully!");
+  form.reset();
+  viewTab.click();
 });
 
-// === Convert File to Base64 ===
-function toBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-// === Fetch and Display Articles ===
-async function fetchArticles() {
+async function displayArticles() {
   articlesList.innerHTML = "";
   fullArticle.innerHTML = "";
 
-  try {
-    const res = await fetch(`${API_URL}/articles`);
-    const articles = await res.json();
+  const articles = await fetchArticles();
 
-    if (!articles.length) {
-      articlesList.innerHTML = "<p>No articles yet.</p>";
-      return;
-    }
-
-    articles.forEach((article, index) => {
-      const div = document.createElement("div");
-      div.innerHTML = `
-        <div class="article-preview" onclick="viewFullArticle(${index})">
-          ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
-          <div class="article-title">${article.title}</div>
-        </div>
-      `;
-      articlesList.appendChild(div);
-    });
-
-    // Save to global for viewing full article
-    window._allArticles = articles;
-
-  } catch (err) {
-    console.error("Failed to load articles:", err);
+  if (articles.length === 0) {
+    articlesList.innerHTML = "<p>No articles available.</p>";
+    return;
   }
+
+  articles.forEach((article, index) => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <div class="article-preview" onclick="viewFullArticle(${index})">
+        ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
+        <div class="article-title">${article.title}</div>
+      </div>
+    `;
+    articlesList.appendChild(div);
+  });
 }
 
-// === View Full Article ===
 window.viewFullArticle = function (index) {
-  const article = window._allArticles?.[index];
-  if (!article) return;
-
+  const article = articleData[index];
   fullArticle.innerHTML = `
     <div class="article-full">
       ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
@@ -144,22 +142,60 @@ window.viewFullArticle = function (index) {
   articlesList.innerHTML = "";
 };
 
-// === Admin: Display All Articles with Delete Option ===
-async function fetchAdminArticles() {
+function displayAdminArticles() {
   adminArticles.innerHTML = "";
-  try {
-    const res = await fetch(`${API_URL}/articles`);
-    const articles = await res.json();
+  articleData.forEach((article, index) => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <hr>
+      <strong>${article.title}</strong>
+      <button class="delete-btn" onclick="deleteArticle(${article.id})">Delete</button>
+    `;
+    adminArticles.appendChild(div);
+  });
+}
 
-    articles.forEach((article) => {
-      const div = document.createElement("div");
-      div.innerHTML = `
-        <hr>
-        <strong>${article.title}</strong>
-        <button class="delete-btn" onclick="deleteArticle(${article.id})">Delete</button>
-      `;
-      adminArticles.appendChild(div);
-    });
+window.deleteArticle = async function (id) {
+  if (!isAdmin) return;
+  if (!confirm("Are you sure you want to delete this article?")) return;
 
-  } catch (err) {
-    console.error("Failed to fetch admin articles:",
+  await deleteArticleFromBackend(id);
+  alert("Article deleted successfully.");
+  await displayArticles();
+  displayAdminArticles();
+};
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const options = { hour: 'numeric', minute: 'numeric', hour12: true };
+  const datePart = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+  const timePart = date.toLocaleTimeString([], options);
+  return `${datePart} ${timePart}`;
+}
+
+// === Utility to convert image to base64 ===
+function convertImageToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+window.addEventListener('popstate', (event) => {
+  if (event.state?.section === 'write') {
+    writeTab.click();
+  } else {
+    viewTab.click();
+  }
+});
+
+window.onload = async () => {
+  if (window.location.hash === '#write') {
+    writeTab.click();
+  } else {
+    viewTab.click();
+  }
+  await displayArticles();
+};
