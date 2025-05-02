@@ -1,0 +1,225 @@
+/* General reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Basic body style */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #FFFFFF;
+  min-height: 100vh;
+}
+
+/* Header */
+header {
+  background: #b3b3b3;
+  padding: 1rem 2rem;
+  text-align: center;
+  position: relative;
+}
+
+.header-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.menu-toggle {
+  position: absolute;
+  top: 50%;
+  left: 1rem;
+  transform: translateY(-50%);
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+/* Logo styles */
+.logo {
+  max-width: 95px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease;
+  z-index: 500;
+}
+
+.overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Side menu */
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: -250px;
+  width: 220px;
+  height: 100%;
+  background: #636e72;
+  display: flex;
+  flex-direction: column;
+  padding-top: 4rem;
+  transition: left 0.4s ease;
+  z-index: 1000;
+}
+
+.side-menu.open {
+  left: 0;
+}
+
+.side-menu button {
+  background: none;
+  border: none;
+  color: #FFFFFF;
+  font-size: 1.2rem;
+  padding: 1rem;
+  cursor: pointer;
+}
+
+.side-menu button:hover {
+  background-color: #2c3e50;
+}
+
+.side-menu .active {
+  font-weight: bold;
+}
+
+/* Container for articles */
+.container {
+  display: flex;
+  justify-content: space-between;
+  padding: 2rem;
+}
+
+/* Section visibility */
+.section {
+  width: 100%;
+  padding: 2rem;
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
+/* Article preview container */
+#articlesList {
+  display: flex; /* Use flexbox to align items horizontally */
+  gap: 1rem; /* Space between each article preview */
+  overflow-x: auto; /* Allow horizontal scrolling if necessary */
+  padding: 1rem 0;
+  justify-content: flex-start; /* Align items to the left */
+}
+
+/* Individual article preview */
+.article-preview {
+  display: flex;
+  flex-direction: column;
+  margin: 0 1rem; /* Space between articles */
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  width: 250px; /* Fixed width for each preview card */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.article-preview:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.article-preview img {
+  width: 100%;
+  height: auto;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+}
+
+.article-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+/* Form styles */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Added space between form elements */
+}
+
+input, select, textarea {
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  padding: 1rem;
+  background-color: #3160ad;
+  color: #fff;
+  font-size: 1.1rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 0.5rem;
+}
+
+button:hover {
+  background-color: #4d76b2;
+}
+
+/* Delete button styles */
+.delete-btn {
+  padding: 0.5rem 1rem;
+  background: #ff0000;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #d10000;
+}
+
+/* Admin write section spacing */
+#writeSection > * {
+  margin-bottom: 1.5rem; /* Add space between sections */
+}
+
+/* Category Management Section Spacing */
+#categoryPanel > * {
+  margin-bottom: 1.5rem; /* Add space between category management elements */
+}
+
+#categoryPanel .category-form {
+  margin-bottom: 1.5rem; /* Space between the category form and the delete section */
+}
+
+#categoryPanel .category-delete {
+  margin-bottom: 1.5rem; /* Space between the delete section and other content */
+}
