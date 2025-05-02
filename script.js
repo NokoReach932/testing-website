@@ -1,4 +1,4 @@
-const API_BASE = "https://komnottra-backend.onrender.com"; // Replace with your actual Render backend URL
+const API_BASE = "https://komnottra-backend.onrender.com"; // Backend URL
 
 const writeTab = document.getElementById("writeTab");
 const viewTab = document.getElementById("viewTab");
@@ -57,11 +57,11 @@ viewTab.addEventListener("click", async () => {
   writeTab.classList.remove("active");
   viewSection.classList.add("active");
   writeSection.classList.remove("active");
-  history.pushState({ section: 'view' }, 'View Articles', '#view');
+  history.pushState({ section: "view" }, "View Articles", "#view");
   await displayArticles();
 });
 
-writeTab.addEventListener("click", () => {
+writeTab.addEventListener("click", async () => {
   if (!isAdmin) {
     const inputUser = prompt("Enter admin username:");
     const inputPass = prompt("Enter admin password:");
@@ -73,11 +73,13 @@ writeTab.addEventListener("click", () => {
       return;
     }
   }
+
   writeTab.classList.add("active");
   viewTab.classList.remove("active");
   writeSection.classList.add("active");
   viewSection.classList.remove("active");
-  history.pushState({ section: 'write' }, 'Write Article', '#write');
+  history.pushState({ section: "write" }, "Write Article", "#write");
+  await fetchArticles(); // Ensure fresh data for admin
   displayAdminArticles();
 });
 
@@ -103,6 +105,7 @@ form.addEventListener("submit", async function (e) {
   await saveArticleToBackend(newArticle);
   alert("Article published successfully!");
   form.reset();
+  await displayArticles();
   viewTab.click();
 });
 
@@ -144,7 +147,7 @@ window.viewFullArticle = function (index) {
 
 function displayAdminArticles() {
   adminArticles.innerHTML = "";
-  articleData.forEach((article, index) => {
+  articleData.forEach((article) => {
     const div = document.createElement("div");
     div.innerHTML = `
       <hr>
@@ -161,14 +164,15 @@ window.deleteArticle = async function (id) {
 
   await deleteArticleFromBackend(id);
   alert("Article deleted successfully.");
+  await fetchArticles(); // Refresh list after deletion
   await displayArticles();
   displayAdminArticles();
 };
 
 function formatDate(dateString) {
   const date = new Date(dateString);
-  const options = { hour: 'numeric', minute: 'numeric', hour12: true };
-  const datePart = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+  const options = { hour: "numeric", minute: "numeric", hour12: true };
+  const datePart = `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
   const timePart = date.toLocaleTimeString([], options);
   return `${datePart} ${timePart}`;
 }
@@ -183,8 +187,8 @@ function convertImageToBase64(file) {
   });
 }
 
-window.addEventListener('popstate', (event) => {
-  if (event.state?.section === 'write') {
+window.addEventListener("popstate", (event) => {
+  if (event.state?.section === "write") {
     writeTab.click();
   } else {
     viewTab.click();
@@ -192,10 +196,9 @@ window.addEventListener('popstate', (event) => {
 });
 
 window.onload = async () => {
-  if (window.location.hash === '#write') {
+  if (window.location.hash === "#write") {
     writeTab.click();
   } else {
     viewTab.click();
   }
-  await displayArticles();
 };
