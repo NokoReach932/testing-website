@@ -73,7 +73,6 @@ async function fetchCategories() {
 async function refreshCategoryDropdowns() {
   const categories = await fetchCategories();
 
-  // Clear current options
   categorySelect.innerHTML = `<option value="" disabled selected>Select Category (Optional)</option>`;
   deleteCategorySelect.innerHTML = `<option disabled selected>Select Category to Delete</option>`;
 
@@ -105,8 +104,9 @@ createCategoryBtn.addEventListener("click", async () => {
       body: JSON.stringify({ category: newCategory }),
     });
 
+    const data = await res.json();
+
     if (!res.ok) {
-      const data = await res.json();
       alert(data.message || "Failed to create category");
     } else {
       alert("Category created!");
@@ -134,8 +134,9 @@ deleteCategoryBtn.addEventListener("click", async () => {
       method: "DELETE",
     });
 
+    const data = await res.json();
+
     if (!res.ok) {
-      const data = await res.json();
       alert(data.message || "Failed to delete category");
     } else {
       alert("Category deleted.");
@@ -174,7 +175,7 @@ writeTab.addEventListener("click", async () => {
   writeSection.classList.add("active");
   viewSection.classList.remove("active");
   history.pushState({ section: "write" }, "Write Article", "#write");
-  await fetchArticles(); // Ensure fresh data for admin
+  await fetchArticles();
   displayAdminArticles();
 });
 
@@ -195,7 +196,7 @@ form.addEventListener("submit", async function (e) {
     content,
     date: new Date().toISOString(),
     image: imageDataURL,
-    category: categorySelect.value, // Category selection
+    category: categorySelect.value,
   };
 
   await saveArticleToBackend(newArticle);
@@ -262,7 +263,7 @@ window.deleteArticle = async function (id) {
 
   await deleteArticleFromBackend(id);
   alert("Article deleted successfully.");
-  await fetchArticles(); // Refresh list after deletion
+  await fetchArticles();
   await displayArticles();
   displayAdminArticles();
 };
@@ -275,7 +276,6 @@ function formatDate(dateString) {
   return `${datePart} ${timePart}`;
 }
 
-// === Utility to convert image to base64 ===
 function convertImageToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
