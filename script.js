@@ -9,6 +9,12 @@ const articlesList = document.getElementById("articlesList");
 const fullArticle = document.getElementById("fullArticle");
 const adminArticles = document.getElementById("adminArticles");
 
+const createCategoryBtn = document.getElementById("createCategoryBtn");
+const deleteCategoryBtn = document.getElementById("deleteCategoryBtn");
+const newCategoryInput = document.getElementById("newCategory");
+const deleteCategorySelect = document.getElementById("deleteCategorySelect");
+const categorySelect = document.getElementById("categorySelect");
+
 let isAdmin = false;
 const adminUsername = "admin";
 const adminPassword = "123";
@@ -51,6 +57,95 @@ async function deleteArticleFromBackend(id) {
     console.error("Failed to delete article", err);
   }
 }
+
+// === Fetch Categories ===
+async function fetchCategories() {
+  try {
+    const res = await fetch(`${API_BASE}/categories`);
+    return await res.json();
+  } catch (err) {
+    console.error("Failed to fetch categories", err);
+    return [];
+  }
+}
+
+// === Refresh Category Dropdowns ===
+async function refreshCategoryDropdowns() {
+  const categories = await fetchCategories();
+
+  // Clear current options
+  categorySelect.innerHTML = `<option value="" disabled selected>Select Category (Optional)</option>`;
+  deleteCategorySelect.innerHTML = `<option disabled selected>Select Category to Delete</option>`;
+
+  categories.forEach(cat => {
+    const option1 = document.createElement("option");
+    option1.value = cat;
+    option1.textContent = cat;
+    categorySelect.appendChild(option1);
+
+    const option2 = document.createElement("option");
+    option2.value = cat;
+    option2.textContent = cat;
+    deleteCategorySelect.appendChild(option2);
+  });
+}
+
+// === Create Category ===
+createCategoryBtn.addEventListener("click", async () => {
+  const newCategory = newCategoryInput.value.trim();
+  if (!newCategory) {
+    alert("Please enter a category name.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/categories`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category: newCategory }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.message || "Failed to create category");
+    } else {
+      alert("Category created!");
+      newCategoryInput.value = "";
+      await refreshCategoryDropdowns();
+    }
+  } catch (err) {
+    console.error("Error creating category", err);
+    alert("Error creating category");
+  }
+});
+
+// === Delete Category ===
+deleteCategoryBtn.addEventListener("click", async () => {
+  const selected = deleteCategorySelect.value;
+  if (!selected) {
+    alert("Please select a category to delete.");
+    return;
+  }
+
+  if (!confirm(`Delete category "${selected}"? This cannot be undone.`)) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/categories/${encodeURIComponent(selected)}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.message || "Failed to delete category");
+    } else {
+      alert("Category deleted.");
+      await refreshCategoryDropdowns();
+    }
+  } catch (err) {
+    console.error("Error deleting category", err);
+    alert("Error deleting category");
+  }
+});
 
 viewTab.addEventListener("click", async () => {
   viewTab.classList.add("active");
@@ -100,6 +195,7 @@ form.addEventListener("submit", async function (e) {
     content,
     date: new Date().toISOString(),
     image: imageDataURL,
+    category: categorySelect.value, // Category selection
   };
 
   await saveArticleToBackend(newArticle);
@@ -126,6 +222,7 @@ async function displayArticles() {
       <div class="article-preview" onclick="viewFullArticle(${index})">
         ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
         <div class="article-title">${article.title}</div>
+        ${article.category ? `<div class="article-category">${article.category}</div>` : ""}
       </div>
     `;
     articlesList.appendChild(div);
@@ -140,6 +237,7 @@ window.viewFullArticle = function (index) {
       <h2>${article.title}</h2>
       <p><strong>Published:</strong> ${formatDate(article.date)}</p>
       <p>${article.content.replace(/\n/g, "<br>")}</p>
+      ${article.category ? `<p><strong>Category:</strong> ${article.category}</p>` : ""}
     </div>
   `;
   articlesList.innerHTML = "";
@@ -201,4 +299,6 @@ window.onload = async () => {
   } else {
     viewTab.click();
   }
+
+  await refreshCategoryDropdowns();
 };
