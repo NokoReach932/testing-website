@@ -287,3 +287,30 @@ button:hover {
 .category-button:hover {
   background-color: #2980b9;
 }
+
+/* ============================== */
+/* Fix for full article image size */
+/* ============================== */
+.article-full img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1rem auto;
+  border-radius: 8px;
+}
+
+.article-full {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  hyphens: auto;
+  padding: 0 1rem;
+}
+
+@media (max-width: 480px) {
+  .article-full {
+    padding: 0 0.5rem;
+  }
+}
