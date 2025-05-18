@@ -1,265 +1,362 @@
-// script.js
+const API_BASE = "https://komnottra-backend.onrender.com"; // Backend URL
 
-// Get DOM elements by correct updated IDs
-const form = document.getElementById("articleForm");
-const titleInput = document.getElementById("title");
-const contentInput = document.getElementById("content");
-const imageInput = document.getElementById("imageUpload");
-const categorySelect = document.getElementById("categorySelect");
-const newCategoryInput = document.getElementById("newCategory");
-const createCategoryBtn = document.getElementById("createCategoryBtn");
-const deleteCategorySelect = document.getElementById("deleteCategorySelect");
-const deleteCategoryBtn = document.getElementById("deleteCategoryBtn");
-const articlesList = document.getElementById("articlesList");
-const fullArticle = document.getElementById("fullArticle");
 const writeTab = document.getElementById("writeTab");
 const viewTab = document.getElementById("viewTab");
-const viewSection = document.getElementById("viewSection");
 const writeSection = document.getElementById("writeSection");
-const categoryNav = document.getElementById("categoryNav");
+const viewSection = document.getElementById("viewSection");
+const form = document.getElementById("articleForm");
+const articlesList = document.getElementById("articlesList");
+const fullArticle = document.getElementById("fullArticle");
+const adminArticles = document.getElementById("adminArticles");
+const categoryNav = document.getElementById("categoryNav"); // Added this
 
+const createCategoryBtn = document.getElementById("createCategoryBtn");
+const deleteCategoryBtn = document.getElementById("deleteCategoryBtn");
+const newCategoryInput = document.getElementById("newCategory");
+const deleteCategorySelect = document.getElementById("deleteCategorySelect");
+const categorySelect = document.getElementById("categorySelect");
+
+let isAdmin = false;
+const adminUsername = "admin";
+const adminPassword = "123";
 let articleData = [];
+let currentCategoryFilter = null; // To track selected category filter
 
-// Fetch categories from backend
+// === Load Articles from Backend ===
+async function fetchArticles() {
+  try {
+    const res = await fetch(`${API_BASE}/articles`);
+    articleData = await res.json();
+    return articleData;
+  } catch (err) {
+    console.error("Failed to fetch articles", err);
+    return [];
+  }
+}
+
+// === Save Article to Backend ===
+async function saveArticleToBackend(article) {
+  try {
+    const res = await fetch(`${API_BASE}/articles`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(article),
+    });
+    return await res.json();
+  } catch (err) {
+    console.error("Failed to save article", err);
+  }
+}
+
+// === Delete Article from Backend ===
+async function deleteArticleFromBackend(id) {
+  try {
+    const res = await fetch(`${API_BASE}/articles/${id}`, {
+      method: "DELETE",
+    });
+    return await res.json();
+  } catch (err) {
+    console.error("Failed to delete article", err);
+  }
+}
+
+// === Fetch Categories ===
 async function fetchCategories() {
-  const res = await fetch("https://komnottra-backend.onrender.com/categories");
-  return await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/categories`);
+    return await res.json();
+  } catch (err) {
+    console.error("Failed to fetch categories", err);
+    return [];
+  }
 }
 
-// Add new category
-async function addCategory(name) {
-  const res = await fetch("https://komnottra-backend.onrender.com/categories", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
-  });
-  return await res.json();
-}
-
-// Delete a category by name
-async function deleteCategory(name) {
-  await fetch(`https://komnottra-backend.onrender.com/categories/${name}`, {
-    method: "DELETE",
-  });
-}
-
-// Refresh category selects/dropdowns
+// === Refresh Category Dropdowns ===
 async function refreshCategoryDropdowns() {
   const categories = await fetchCategories();
 
-  // Refresh categorySelect options in article form
-  categorySelect.innerHTML =
-    '<option value="" disabled selected>Select Category (Optional)</option>';
-  // Refresh deleteCategorySelect options
-  deleteCategorySelect.innerHTML =
-    '<option disabled selected>Select Category to Delete</option>';
+  // Clear current options
+  categorySelect.innerHTML = `<option value="" disabled selected>Select Category (Optional)</option>`;
+  deleteCategorySelect.innerHTML = `<option disabled selected>Select Category to Delete</option>`;
 
-  categories.forEach((category) => {
-    // Option for categorySelect (article form)
+  categories.forEach(cat => {
     const option1 = document.createElement("option");
-    option1.value = category;
-    option1.textContent = category;
+    option1.value = cat;
+    option1.textContent = cat;
     categorySelect.appendChild(option1);
 
-    // Option for deleteCategorySelect
     const option2 = document.createElement("option");
-    option2.value = category;
-    option2.textContent = category;
+    option2.value = cat;
+    option2.textContent = cat;
     deleteCategorySelect.appendChild(option2);
   });
+
+  // Also update category navigation buttons
+  displayCategoryNav(categories);
 }
 
-// Display category buttons above article list (for filtering)
-async function displayCategoryButtons() {
-  categoryNav.innerHTML = "";
-  const categories = await fetchCategories();
+// === Display Category Navigation Buttons ===
+function displayCategoryNav(categories) {
+  categoryNav.innerHTML = ""; // Clear existing
 
-  // "All" button to reset filters
+  // "Show All" button to clear filter
   const allBtn = document.createElement("button");
-  allBtn.className = "category-button";
-  allBtn.textContent = "All";
-  allBtn.onclick = () => displayArticles();
+  allBtn.textContent = "Show All";
+  allBtn.classList.add("category-btn");
+  if (!currentCategoryFilter) allBtn.classList.add("active");
+  allBtn.addEventListener("click", () => {
+    currentCategoryFilter = null;
+    displayArticles();
+    updateCategoryNavActive();
+  });
   categoryNav.appendChild(allBtn);
 
-  categories.forEach((category) => {
+  categories.forEach(cat => {
     const btn = document.createElement("button");
-    btn.className = "category-button";
-    btn.textContent = category;
-    btn.onclick = () => filterArticlesByCategory(category);
+    btn.textContent = cat;
+    btn.classList.add("category-btn");
+    if (cat === currentCategoryFilter) btn.classList.add("active");
+    btn.addEventListener("click", () => {
+      currentCategoryFilter = cat;
+      displayArticles();
+      updateCategoryNavActive();
+    });
     categoryNav.appendChild(btn);
   });
 }
 
-// Submit article to backend
-async function submitArticle(article) {
-  const res = await fetch("https://komnottra-backend.onrender.com/articles", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(article),
-  });
-  const savedArticle = await res.json();
-  articleData.unshift(savedArticle);
-  form.reset();
-  displayArticles();
-}
-
-// Form submit event with image file reading
-form.onsubmit = (e) => {
-  e.preventDefault();
-  const title = titleInput.value.trim();
-  const content = contentInput.value.trim();
-  const category = categorySelect.value;
-  const imageFile = imageInput.files[0];
-
-  if (!title || !content) {
-    alert("Title and content are required.");
-    return;
-  }
-
-  if (imageFile) {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      submitArticle({
-        title,
-        content,
-        image: reader.result,
-        category,
-      });
-    };
-    reader.readAsDataURL(imageFile);
-  } else {
-    submitArticle({
-      title,
-      content,
-      image: "",
-      category,
-    });
-  }
-};
-
-// Display all articles in the view section
-function displayArticles() {
-  articlesList.innerHTML = "";
-  fullArticle.innerHTML = "";
-
-  articleData.forEach((article, index) => {
-    const div = document.createElement("div");
-    div.className = "article-preview";
-    div.onclick = () => viewFullArticle(index);
-    div.innerHTML = `
-      ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
-      <div class="article-title">${article.title}</div>
-      ${
-        article.category
-          ? `<div class="article-category">${article.category}</div>`
-          : ""
-      }
-    `;
-    articlesList.appendChild(div);
+// Update active state of category buttons in nav
+function updateCategoryNavActive() {
+  const buttons = categoryNav.querySelectorAll("button");
+  buttons.forEach(btn => {
+    if (btn.textContent === currentCategoryFilter || (btn.textContent === "Show All" && !currentCategoryFilter)) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
   });
 }
 
-// Filter articles by category
-function filterArticlesByCategory(selectedCategory) {
-  articlesList.innerHTML = "";
-  fullArticle.innerHTML = "";
-
-  const filtered = articleData.filter(
-    (article) => article.category === selectedCategory
-  );
-
-  if (filtered.length === 0) {
-    articlesList.innerHTML = `<p>No articles found for category "${selectedCategory}".</p>`;
-    return;
-  }
-
-  filtered.forEach((article) => {
-    const div = document.createElement("div");
-    div.className = "article-preview";
-    div.onclick = () => viewFullArticle(articleData.indexOf(article));
-    div.innerHTML = `
-      ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
-      <div class="article-title">${article.title}</div>
-      <div class="article-category">${article.category}</div>
-    `;
-    articlesList.appendChild(div);
-  });
-}
-
-// View full article details
-function viewFullArticle(index) {
-  const article = articleData[index];
-  if (!article) return;
-
-  fullArticle.innerHTML = `
-    <h2>${article.title}</h2>
-    ${article.image ? `<img src="${article.image}" alt="Article Image" class="full-image">` : ""}
-    <p>${article.content.replace(/\n/g, "<br>")}</p>
-    <p><strong>Category:</strong> ${article.category || "None"}</p>
-  `;
-
-  // Scroll to full article view
-  fullArticle.scrollIntoView({ behavior: "smooth" });
-}
-
-// Fetch articles from backend on load
-async function fetchArticles() {
-  const res = await fetch("https://komnottra-backend.onrender.com/articles");
-  articleData = await res.json();
-  displayArticles();
-}
-
-// Admin category management event handlers
-createCategoryBtn.onclick = async () => {
-  const newCat = newCategoryInput.value.trim();
-  if (!newCat) {
+// === Create Category ===
+createCategoryBtn.addEventListener("click", async () => {
+  const newCategory = newCategoryInput.value.trim();
+  if (!newCategory) {
     alert("Please enter a category name.");
     return;
   }
-  await addCategory(newCat);
-  newCategoryInput.value = "";
-  await refreshCategoryDropdowns();
-  await displayCategoryButtons();
-};
 
-deleteCategoryBtn.onclick = async () => {
-  const catToDelete = deleteCategorySelect.value;
-  if (!catToDelete) {
+  try {
+    const res = await fetch(`${API_BASE}/categories`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category: newCategory }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.message || "Failed to create category");
+    } else {
+      alert("Category created!");
+      newCategoryInput.value = "";
+      await refreshCategoryDropdowns();
+    }
+  } catch (err) {
+    console.error("Error creating category", err);
+    alert("Error creating category");
+  }
+});
+
+// === Delete Category ===
+deleteCategoryBtn.addEventListener("click", async () => {
+  const selected = deleteCategorySelect.value;
+  if (!selected) {
     alert("Please select a category to delete.");
     return;
   }
-  await deleteCategory(catToDelete);
-  await refreshCategoryDropdowns();
-  await displayCategoryButtons();
-};
 
-// Tab switching logic
-writeTab.onclick = () => {
-  writeSection.classList.add("active");
-  viewSection.classList.remove("active");
-  writeTab.classList.add("active");
-  viewTab.classList.remove("active");
-  window.location.hash = "#write";
-};
+  if (!confirm(`Delete category "${selected}"? This cannot be undone.`)) return;
 
-viewTab.onclick = () => {
-  viewSection.classList.add("active");
-  writeSection.classList.remove("active");
-  viewTab.classList.add("active");
-  writeTab.classList.remove("active");
-  window.location.hash = "#view";
-};
+  try {
+    const res = await fetch(`${API_BASE}/categories/${encodeURIComponent(selected)}`, {
+      method: "DELETE",
+    });
 
-// On page load
-(async () => {
-  await refreshCategoryDropdowns();
-  await displayCategoryButtons();
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.message || "Failed to delete category");
+    } else {
+      alert("Category deleted.");
+      await refreshCategoryDropdowns();
+    }
+  } catch (err) {
+    console.error("Error deleting category", err);
+    alert("Error deleting category");
+  }
+});
+
+// === Show Articles List ===
+async function displayArticles() {
+  articlesList.innerHTML = "";
+  fullArticle.innerHTML = "";
+
   await fetchArticles();
 
-  // Open tab based on URL hash
+  let filteredArticles = articleData;
+  if (currentCategoryFilter) {
+    filteredArticles = articleData.filter(a => a.category === currentCategoryFilter);
+  }
+
+  if (filteredArticles.length === 0) {
+    articlesList.innerHTML = "<p>No articles available.</p>";
+    return;
+  }
+
+  filteredArticles.forEach((article, index) => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <div class="article-preview" onclick="viewFullArticle(${index})" style="cursor:pointer;">
+        ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
+        <div class="article-title">${article.title}</div>
+        ${article.category ? `<div class="article-category">${article.category}</div>` : ""}
+      </div>
+    `;
+    articlesList.appendChild(div);
+  });
+
+  updateCategoryNavActive();
+}
+
+window.viewFullArticle = function (index) {
+  const article = articleData[index];
+  fullArticle.innerHTML = `
+    <div class="article-full">
+      ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
+      <h2>${article.title}</h2>
+      <p><strong>Published:</strong> ${formatDate(article.date)}</p>
+      <p>${article.content.replace(/\n/g, "<br>")}</p>
+      ${article.category ? `<p><strong>Category:</strong> ${article.category}</p>` : ""}
+    </div>
+  `;
+  articlesList.innerHTML = "";
+};
+
+function displayAdminArticles() {
+  adminArticles.innerHTML = "";
+  articleData.forEach((article) => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <hr>
+      <strong>${article.title}</strong>
+      <button class="delete-btn" onclick="deleteArticle(${article.id})">Delete</button>
+    `;
+    adminArticles.appendChild(div);
+  });
+}
+
+window.deleteArticle = async function (id) {
+  if (!isAdmin) return;
+  if (!confirm("Are you sure you want to delete this article?")) return;
+
+  await deleteArticleFromBackend(id);
+  alert("Article deleted successfully.");
+  await fetchArticles(); // Refresh list after deletion
+  await displayArticles();
+  displayAdminArticles();
+};
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const options = { hour: "numeric", minute: "numeric", hour12: true };
+  const datePart = `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
+  const timePart = date.toLocaleTimeString([], options);
+  return `${datePart} ${timePart}`;
+}
+
+// === Utility to convert image to base64 ===
+function convertImageToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+viewTab.addEventListener("click", async () => {
+  viewTab.classList.add("active");
+  writeTab.classList.remove("active");
+  viewSection.classList.add("active");
+  writeSection.classList.remove("active");
+  history.pushState({ section: "view" }, "View Articles", "#view");
+  currentCategoryFilter = null; // Reset filter when switching tab
+  await displayArticles();
+});
+
+writeTab.addEventListener("click", async () => {
+  if (!isAdmin) {
+    const inputUser = prompt("Enter admin username:");
+    const inputPass = prompt("Enter admin password:");
+    if (inputUser === adminUsername && inputPass === adminPassword) {
+      isAdmin = true;
+      alert("Welcome, Admin!");
+    } else {
+      alert("Incorrect credentials.");
+      return;
+    }
+  }
+
+  writeTab.classList.add("active");
+  viewTab.classList.remove("active");
+  writeSection.classList.add("active");
+  viewSection.classList.remove("active");
+  history.pushState({ section: "write" }, "Write Article", "#write");
+  await fetchArticles(); // Ensure fresh data for admin
+  displayAdminArticles();
+});
+
+form.addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const title = document.getElementById("title").value;
+  const content = document.getElementById("content").value;
+  const imageInput = document.getElementById("imageUpload");
+  const imageFile = imageInput.files[0];
+
+  let imageDataURL = null;
+  if (imageFile) {
+    imageDataURL = await convertImageToBase64(imageFile);
+  }
+
+  const newArticle = {
+    title,
+    content,
+    date: new Date().toISOString(),
+    image: imageDataURL,
+    category: categorySelect.value, // Category selection
+  };
+
+  await saveArticleToBackend(newArticle);
+  alert("Article published successfully!");
+  form.reset();
+  await refreshCategoryDropdowns();  // Refresh categories in case new one added
+  currentCategoryFilter = null;       // Reset category filter after publish
+  await displayArticles();
+  viewTab.click();
+});
+
+window.addEventListener("popstate", (event) => {
+  if (event.state?.section === "write") {
+    writeTab.click();
+  } else {
+    viewTab.click();
+  }
+});
+
+window.onload = async () => {
   if (window.location.hash === "#write") {
     writeTab.click();
   } else {
     viewTab.click();
   }
-})();
+
+  await refreshCategoryDropdowns();
+};
