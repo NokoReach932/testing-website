@@ -262,3 +262,28 @@ button:hover {
     left: 0;
   }
 }
+
+/* -------------------------------- */
+/* Category Navigation Button Style */
+/* -------------------------------- */
+.category-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.category-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.category-button:hover {
+  background-color: #2980b9;
+}
