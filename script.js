@@ -8,21 +8,21 @@ const form = document.getElementById("articleForm");
 const articlesList = document.getElementById("articlesList");
 const fullArticle = document.getElementById("fullArticle");
 const adminArticles = document.getElementById("adminArticles");
-const categoryNav = document.getElementById("categoryNav"); // Added this
+const categoryNav = document.getElementById("categoryNav");
 
 const createCategoryBtn = document.getElementById("createCategoryBtn");
 const deleteCategoryBtn = document.getElementById("deleteCategoryBtn");
 const newCategoryInput = document.getElementById("newCategory");
 const deleteCategorySelect = document.getElementById("deleteCategorySelect");
 const categorySelect = document.getElementById("categorySelect");
+const logo = document.querySelector(".logo");
 
 let isAdmin = false;
 const adminUsername = "admin";
 const adminPassword = "123";
 let articleData = [];
-let currentCategoryFilter = null; // To track selected category filter
+let currentCategoryFilter = null;
 
-// === Load Articles from Backend ===
 async function fetchArticles() {
   try {
     const res = await fetch(`${API_BASE}/articles`);
@@ -34,7 +34,6 @@ async function fetchArticles() {
   }
 }
 
-// === Save Article to Backend ===
 async function saveArticleToBackend(article) {
   try {
     const res = await fetch(`${API_BASE}/articles`, {
@@ -48,7 +47,6 @@ async function saveArticleToBackend(article) {
   }
 }
 
-// === Delete Article from Backend ===
 async function deleteArticleFromBackend(id) {
   try {
     const res = await fetch(`${API_BASE}/articles/${id}`, {
@@ -60,7 +58,6 @@ async function deleteArticleFromBackend(id) {
   }
 }
 
-// === Fetch Categories ===
 async function fetchCategories() {
   try {
     const res = await fetch(`${API_BASE}/categories`);
@@ -71,11 +68,9 @@ async function fetchCategories() {
   }
 }
 
-// === Refresh Category Dropdowns ===
 async function refreshCategoryDropdowns() {
   const categories = await fetchCategories();
 
-  // Clear current options
   categorySelect.innerHTML = `<option value="" disabled selected>Select Category (Optional)</option>`;
   deleteCategorySelect.innerHTML = `<option disabled selected>Select Category to Delete</option>`;
 
@@ -91,15 +86,12 @@ async function refreshCategoryDropdowns() {
     deleteCategorySelect.appendChild(option2);
   });
 
-  // Also update category navigation buttons
   displayCategoryNav(categories);
 }
 
-// === Display Category Navigation Buttons ===
 function displayCategoryNav(categories) {
-  categoryNav.innerHTML = ""; // Clear existing
+  categoryNav.innerHTML = "";
 
-  // "Show All" button to clear filter
   const allBtn = document.createElement("button");
   allBtn.textContent = "Show All";
   allBtn.classList.add("category-btn");
@@ -125,7 +117,6 @@ function displayCategoryNav(categories) {
   });
 }
 
-// Update active state of category buttons in nav
 function updateCategoryNavActive() {
   const buttons = categoryNav.querySelectorAll("button");
   buttons.forEach(btn => {
@@ -137,7 +128,6 @@ function updateCategoryNavActive() {
   });
 }
 
-// === Create Category ===
 createCategoryBtn.addEventListener("click", async () => {
   const newCategory = newCategoryInput.value.trim();
   if (!newCategory) {
@@ -166,7 +156,6 @@ createCategoryBtn.addEventListener("click", async () => {
   }
 });
 
-// === Delete Category ===
 deleteCategoryBtn.addEventListener("click", async () => {
   const selected = deleteCategorySelect.value;
   if (!selected) {
@@ -194,7 +183,6 @@ deleteCategoryBtn.addEventListener("click", async () => {
   }
 });
 
-// === Show Articles List ===
 async function displayArticles() {
   articlesList.innerHTML = "";
   fullArticle.innerHTML = "";
@@ -259,7 +247,7 @@ window.deleteArticle = async function (id) {
 
   await deleteArticleFromBackend(id);
   alert("Article deleted successfully.");
-  await fetchArticles(); // Refresh list after deletion
+  await fetchArticles();
   await displayArticles();
   displayAdminArticles();
 };
@@ -272,7 +260,6 @@ function formatDate(dateString) {
   return `${datePart} ${timePart}`;
 }
 
-// === Utility to convert image to base64 ===
 function convertImageToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -288,7 +275,7 @@ viewTab.addEventListener("click", async () => {
   viewSection.classList.add("active");
   writeSection.classList.remove("active");
   history.pushState({ section: "view" }, "View Articles", "#view");
-  currentCategoryFilter = null; // Reset filter when switching tab
+  currentCategoryFilter = null;
   await displayArticles();
 });
 
@@ -310,8 +297,12 @@ writeTab.addEventListener("click", async () => {
   writeSection.classList.add("active");
   viewSection.classList.remove("active");
   history.pushState({ section: "write" }, "Write Article", "#write");
-  await fetchArticles(); // Ensure fresh data for admin
+  await fetchArticles();
   displayAdminArticles();
+});
+
+logo.addEventListener("click", async () => {
+  viewTab.click();
 });
 
 form.addEventListener("submit", async function (e) {
@@ -331,14 +322,14 @@ form.addEventListener("submit", async function (e) {
     content,
     date: new Date().toISOString(),
     image: imageDataURL,
-    category: categorySelect.value, // Category selection
+    category: categorySelect.value,
   };
 
   await saveArticleToBackend(newArticle);
   alert("Article published successfully!");
   form.reset();
-  await refreshCategoryDropdowns();  // Refresh categories in case new one added
-  currentCategoryFilter = null;       // Reset category filter after publish
+  await refreshCategoryDropdowns();
+  currentCategoryFilter = null;
   await displayArticles();
   viewTab.click();
 });
@@ -357,6 +348,5 @@ window.onload = async () => {
   } else {
     viewTab.click();
   }
-
   await refreshCategoryDropdowns();
 };
