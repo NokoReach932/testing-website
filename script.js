@@ -233,7 +233,6 @@ window.viewFullArticle = function (articleId) {
       <p><strong>Published:</strong> ${formatDate(article.date)}</p>
       <p>${article.content.replace(/\n/g, "<br>")}</p>
       ${article.category ? `<p><strong>Category:</strong> ${article.category}</p>` : ""}
-      <button id="backToListBtn">Back to List</button>
     </div>
   `;
 
