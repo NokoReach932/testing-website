@@ -21,12 +21,17 @@ let isAdmin = false;
 const adminUsername = "admin";
 const adminPassword = "123";
 let articleData = [];
+let filteredArticles = []; // store currently displayed filtered articles
 let currentCategoryFilter = null;
 
 async function fetchArticles() {
   try {
     const res = await fetch(`${API_BASE}/articles`);
     articleData = await res.json();
+    // Assign IDs if missing (optional, if your backend doesn't provide IDs)
+    articleData.forEach((article, idx) => {
+      if (!article.id) article.id = idx + 1;
+    });
     return articleData;
   } catch (err) {
     console.error("Failed to fetch articles", err);
@@ -189,33 +194,38 @@ async function displayArticles() {
 
   await fetchArticles();
 
-  let filteredArticles = articleData;
-  if (currentCategoryFilter) {
-    filteredArticles = articleData.filter(a => a.category === currentCategoryFilter);
-  }
+  filteredArticles = currentCategoryFilter
+    ? articleData.filter(a => a.category === currentCategoryFilter)
+    : [...articleData];
 
   if (filteredArticles.length === 0) {
     articlesList.innerHTML = "<p>No articles available.</p>";
     return;
   }
 
-  filteredArticles.forEach((article, index) => {
+  filteredArticles.forEach((article) => {
     const div = document.createElement("div");
+    div.classList.add("article-preview");
+    div.style.cursor = "pointer";
     div.innerHTML = `
-      <div class="article-preview" onclick="viewFullArticle(${index})" style="cursor:pointer;">
-        ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
-        <div class="article-title">${article.title}</div>
-        ${article.category ? `<div class="article-category">${article.category}</div>` : ""}
-      </div>
+      ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
+      <div class="article-title">${article.title}</div>
+      ${article.category ? `<div class="article-category">${article.category}</div>` : ""}
     `;
+    div.addEventListener("click", () => viewFullArticle(article.id));
     articlesList.appendChild(div);
   });
 
   updateCategoryNavActive();
 }
 
-window.viewFullArticle = function (index) {
-  const article = articleData[index];
+window.viewFullArticle = function (articleId) {
+  const article = articleData.find(a => a.id === articleId);
+  if (!article) {
+    fullArticle.innerHTML = "<p>Article not found.</p>";
+    return;
+  }
+
   fullArticle.innerHTML = `
     <div class="article-full">
       ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
@@ -223,9 +233,18 @@ window.viewFullArticle = function (index) {
       <p><strong>Published:</strong> ${formatDate(article.date)}</p>
       <p>${article.content.replace(/\n/g, "<br>")}</p>
       ${article.category ? `<p><strong>Category:</strong> ${article.category}</p>` : ""}
+      <button id="backToListBtn">Back to List</button>
     </div>
   `;
+
+  // Hide articles list to focus on full article
   articlesList.innerHTML = "";
+
+  // Back button event listener
+  document.getElementById("backToListBtn").addEventListener("click", () => {
+    fullArticle.innerHTML = "";
+    displayArticles();
+  });
 };
 
 function displayAdminArticles() {
