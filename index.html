@@ -10,9 +10,7 @@
 <body>
   <header>
     <div class="header-container">
-      <a href="#" id="logoLink">
-        <img src="logo.png" alt="Komnottra Logo" class="logo">
-      </a>
+      <img src="logo.png" alt="Komnottra Logo" class="logo">
       <div id="menuToggle" class="menu-toggle">&#9776;</div>
     </div>
   </header>
@@ -27,7 +25,7 @@
   <div class="container">
     <section id="viewSection" class="section active">
       <h2>Home Page</h2>
-
+      
       <!-- Categories Row (Navigation-style menu) -->
       <div id="categoryNav" class="category-nav">
         <!-- JavaScript will populate this section with category buttons -->
@@ -78,8 +76,6 @@
     const menuToggle = document.getElementById('menuToggle');
     const sideMenu = document.getElementById('sideMenu');
     const overlay = document.getElementById('overlay');
-    const logoLink = document.getElementById('logoLink');
-    const viewTab = document.getElementById('viewTab');
 
     menuToggle.addEventListener('click', () => {
       sideMenu.classList.toggle('open');
@@ -96,12 +92,6 @@
         sideMenu.classList.remove('open');
         overlay.classList.remove('active');
       });
-    });
-
-    // 👇 Click logo to go to Home
-    logoLink.addEventListener('click', (e) => {
-      e.preventDefault(); // Prevent default anchor behavior
-      viewTab.click();    // Simulate clicking the Home tab
     });
   </script>
 </body>
