@@ -231,8 +231,8 @@ window.viewFullArticle = function (articleId) {
       ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
       <h2>${article.title}</h2>
       <p><strong>Published:</strong> ${formatDate(article.date)}</p>
-      <p>${article.content.replace(/\n/g, "<br>")}</p>
-      ${article.category ? `<p><strong>Category:</strong> ${article.category}</p>` : ""}
+      ${article.category ? `<p><strong>Category:</strong> ${article.category}</p>
+      <p>${article.content.replace(/\n/g, "<br>")}</p>` : ""}
     </div>
   `;
 
