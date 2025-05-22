@@ -264,34 +264,21 @@ button:hover {
 }
 
 /* -------------------------------- */
-/* Updated Category Navigation Style */
+/* Category Navigation Button Style */
 /* -------------------------------- */
 .category-nav {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 10px;
   margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #ccc;
-  scrollbar-width: thin;
-  scrollbar-color: #ccc transparent;
-}
-
-.category-nav::-webkit-scrollbar {
-  height: 6px;
-}
-.category-nav::-webkit-scrollbar-thumb {
-  background-color: #ccc;
-  border-radius: 4px;
-}
-.category-nav::-webkit-scrollbar-track {
-  background: transparent;
+  padding: 1rem;
+  background-color: #f0f0f0;  /* light background box */
+  border: 1px solid black;    /* black border line */
+  border-radius: 8px;
+  max-width: 100%;
 }
 
 .category-button {
-  white-space: nowrap;
   background-color: #3498db;
   color: white;
   border: none;
@@ -300,7 +287,6 @@ button:hover {
   font-size: 0.9rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  flex-shrink: 0;
 }
 
 .category-button:hover {
