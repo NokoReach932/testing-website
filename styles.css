@@ -267,30 +267,31 @@ button:hover {
 /* Category Navigation Button Style */
 /* -------------------------------- */
 .category-nav {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 10px;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background-color: #f0f0f0;  /* light background box */
-  border: 1px solid black;    /* black border line */
-  border-radius: 8px;
-  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
+  padding: 10px 0;
+  justify-content: center;
 }
 
-.category-button {
-  background-color: #3498db;
-  color: white;
+.category-btn {
+  padding: 10px 20px;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.9rem;
+  background-color: #f0f0f0;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  border-right: 1px solid black;
+  font-size: 16px;
 }
 
-.category-button:hover {
-  background-color: #2980b9;
+.category-btn:last-child {
+  border-right: none;
+}
+
+.category-btn.active {
+  background-color: #ccc;
+  font-weight: bold;
 }
 
 /* ============================== */
