@@ -195,7 +195,7 @@ button {
   font-size: 1.1rem;
   border: none;
   cursor: pointer;
-  border-radius: 0.5rem;
+  border-radius: 0rem;
 }
 
 button:hover {
