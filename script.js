@@ -98,7 +98,7 @@ function displayCategoryNav(categories) {
   categoryNav.innerHTML = "";
 
   const allBtn = document.createElement("button");
-  allBtn.textContent = "Show All";
+  allBtn.textContent = "ព័ត៌មានចម្រុះ";
   allBtn.classList.add("category-btn");
   if (!currentCategoryFilter) allBtn.classList.add("active");
   allBtn.addEventListener("click", () => {
