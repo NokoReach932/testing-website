@@ -232,7 +232,11 @@ window.viewFullArticle = function (articleId) {
       <h2>${article.title}</h2>
       <p><strong>Published:</strong> ${formatDate(article.date)}</p>
       ${article.category ? `<p><strong>Category:</strong> ${article.category}</p>
-      <p>${article.content.replace(/\n/g, "<br>")}</p>` : ""}
+      ${article.content
+  .split('\n')
+  .filter(line => line.trim() !== "")
+  .map(line => `<p>${line.trim()}</p>`)
+  .join('')}` : ""}
     </div>
   `;
 
