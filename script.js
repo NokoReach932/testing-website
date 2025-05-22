@@ -15,6 +15,9 @@ const deleteCategoryBtn = document.getElementById("deleteCategoryBtn");
 const newCategoryInput = document.getElementById("newCategory");
 const deleteCategorySelect = document.getElementById("deleteCategorySelect");
 const categorySelect = document.getElementById("categorySelect");
+const fontSelect = document.getElementById("fontSelect"); // New font select element
+const fontUploadInput = document.getElementById("fontUpload"); // New font upload input
+const uploadFontBtn = document.getElementById("uploadFontBtn"); // New font upload button
 const logo = document.querySelector(".logo");
 
 let isAdmin = false;
@@ -23,12 +26,14 @@ const adminPassword = "123";
 let articleData = [];
 let filteredArticles = []; // store currently displayed filtered articles
 let currentCategoryFilter = null;
+let fontList = []; // store fonts fetched from backend
 
+// Fetch articles from backend
 async function fetchArticles() {
   try {
     const res = await fetch(`${API_BASE}/articles`);
     articleData = await res.json();
-    // Assign IDs if missing (optional, if your backend doesn't provide IDs)
+    // Assign IDs if missing (optional)
     articleData.forEach((article, idx) => {
       if (!article.id) article.id = idx + 1;
     });
@@ -39,6 +44,7 @@ async function fetchArticles() {
   }
 }
 
+// Save article to backend
 async function saveArticleToBackend(article) {
   try {
     const res = await fetch(`${API_BASE}/articles`, {
@@ -52,6 +58,7 @@ async function saveArticleToBackend(article) {
   }
 }
 
+// Delete article from backend
 async function deleteArticleFromBackend(id) {
   try {
     const res = await fetch(`${API_BASE}/articles/${id}`, {
@@ -63,6 +70,7 @@ async function deleteArticleFromBackend(id) {
   }
 }
 
+// Fetch categories from backend
 async function fetchCategories() {
   try {
     const res = await fetch(`${API_BASE}/categories`);
@@ -73,6 +81,31 @@ async function fetchCategories() {
   }
 }
 
+// Fetch fonts from backend
+async function fetchFonts() {
+  try {
+    const res = await fetch(`${API_BASE}/fonts`);
+    fontList = await res.json();
+    updateFontDropdown();
+  } catch (err) {
+    console.error("Failed to fetch fonts", err);
+    fontList = [];
+    updateFontDropdown();
+  }
+}
+
+// Update font dropdown options in the article form
+function updateFontDropdown() {
+  fontSelect.innerHTML = `<option value="" selected>Default Font</option>`;
+  fontList.forEach(font => {
+    const option = document.createElement("option");
+    option.value = font.url; // Assuming backend returns an object with font URL
+    option.textContent = font.name; // and font name
+    fontSelect.appendChild(option);
+  });
+}
+
+// Refresh category dropdowns and navigation buttons
 async function refreshCategoryDropdowns() {
   const categories = await fetchCategories();
 
@@ -94,6 +127,7 @@ async function refreshCategoryDropdowns() {
   displayCategoryNav(categories);
 }
 
+// Display category navigation buttons
 function displayCategoryNav(categories) {
   categoryNav.innerHTML = "";
 
@@ -122,6 +156,7 @@ function displayCategoryNav(categories) {
   });
 }
 
+// Update active state on category nav buttons
 function updateCategoryNavActive() {
   const buttons = categoryNav.querySelectorAll("button");
   buttons.forEach(btn => {
@@ -133,6 +168,7 @@ function updateCategoryNavActive() {
   });
 }
 
+// Create category event
 createCategoryBtn.addEventListener("click", async () => {
   const newCategory = newCategoryInput.value.trim();
   if (!newCategory) {
@@ -161,6 +197,7 @@ createCategoryBtn.addEventListener("click", async () => {
   }
 });
 
+// Delete category event
 deleteCategoryBtn.addEventListener("click", async () => {
   const selected = deleteCategorySelect.value;
   if (!selected) {
@@ -188,6 +225,7 @@ deleteCategoryBtn.addEventListener("click", async () => {
   }
 });
 
+// Display articles filtered by category
 async function displayArticles() {
   articlesList.innerHTML = "";
   fullArticle.innerHTML = "";
@@ -219,6 +257,7 @@ async function displayArticles() {
   updateCategoryNavActive();
 }
 
+// View full article display
 window.viewFullArticle = function (articleId) {
   const article = articleData.find(a => a.id === articleId);
   if (!article) {
@@ -226,17 +265,22 @@ window.viewFullArticle = function (articleId) {
     return;
   }
 
+  // Compose article content with paragraphs
+  const articleContent = article.content
+    .split('\n')
+    .filter(line => line.trim() !== "")
+    .map(line => `<p>${line.trim()}</p>`)
+    .join('');
+
+  // Show the article with selected font style applied
   fullArticle.innerHTML = `
-    <div class="article-full">
+    <div class="article-full" style="font-family: ${article.fontFamily || 'inherit'};">
       ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
       <h2>${article.title}</h2>
       <p><strong>Published:</strong> ${formatDate(article.date)}</p>
-      ${article.category ? `<p><strong>Category:</strong> ${article.category}</p>
-      ${article.content
-  .split('\n')
-  .filter(line => line.trim() !== "")
-  .map(line => `<p>${line.trim()}</p>`)
-  .join('')}` : ""}
+      ${article.category ? `<p><strong>Category:</strong> ${article.category}</p>` : ""}
+      ${articleContent}
+      <button id="backToListBtn">Back to List</button>
     </div>
   `;
 
@@ -250,6 +294,7 @@ window.viewFullArticle = function (articleId) {
   });
 };
 
+// Display admin articles with delete option
 function displayAdminArticles() {
   adminArticles.innerHTML = "";
   articleData.forEach((article) => {
@@ -263,6 +308,7 @@ function displayAdminArticles() {
   });
 }
 
+// Delete article event
 window.deleteArticle = async function (id) {
   if (!isAdmin) return;
   if (!confirm("Are you sure you want to delete this article?")) return;
@@ -274,6 +320,7 @@ window.deleteArticle = async function (id) {
   displayAdminArticles();
 };
 
+// Format date string nicely
 function formatDate(dateString) {
   const date = new Date(dateString);
   const options = { hour: "numeric", minute: "numeric", hour12: true };
@@ -282,6 +329,7 @@ function formatDate(dateString) {
   return `${datePart} ${timePart}`;
 }
 
+// Convert image file to base64 string
 function convertImageToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -291,6 +339,17 @@ function convertImageToBase64(file) {
   });
 }
 
+// Convert font file to base64 string
+function convertFontToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Tab switching logic
 viewTab.addEventListener("click", async () => {
   viewTab.classList.add("active");
   writeTab.classList.remove("active");
@@ -327,48 +386,89 @@ logo.addEventListener("click", async () => {
   viewTab.click();
 });
 
+// Article form submit handler
 form.addEventListener("submit", async function (e) {
   e.preventDefault();
-  const title = document.getElementById("title").value;
-  const content = document.getElementById("content").value;
-  const imageInput = document.getElementById("imageUpload");
-  const imageFile = imageInput.files[0];
+  const title = this.title.value.trim();
+  const content = this.content.value.trim();
+  const category = categorySelect.value || null;
+  const fontUrl = fontSelect.value || null;
 
-  let imageDataURL = null;
-  if (imageFile) {
-    imageDataURL = await convertImageToBase64(imageFile);
+  if (!title || !content) {
+    alert("Title and content are required.");
+    return;
   }
 
+  // Handle image upload and convert to base64
+  let imageBase64 = "";
+  if (this.image.files.length > 0) {
+    imageBase64 = await convertImageToBase64(this.image.files[0]);
+  }
+
+  // Compose article object
   const newArticle = {
+    id: Date.now(), // simple unique id
     title,
     content,
+    category,
+    image: imageBase64,
     date: new Date().toISOString(),
-    image: imageDataURL,
-    category: categorySelect.value,
+    fontFamily: fontUrl ? `url(${fontUrl})` : null, // store font URL
   };
 
   await saveArticleToBackend(newArticle);
-  alert("Article published successfully!");
-  form.reset();
+  alert("Article published!");
+  this.reset();
+  await fetchArticles();
+  displayArticles();
+  displayAdminArticles();
+});
+
+// Upload font file handler
+uploadFontBtn.addEventListener("click", async () => {
+  const files = fontUploadInput.files;
+  if (!files || files.length === 0) {
+    alert("Please select a font file to upload.");
+    return;
+  }
+  const fontFile = files[0];
+
+  // Convert font file to base64 (if your backend expects that)
+  const base64Font = await convertFontToBase64(fontFile);
+
+  // Send font to backend
+  try {
+    const res = await fetch(`${API_BASE}/fonts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: fontFile.name,
+        data: base64Font,
+      }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.message || "Failed to upload font");
+      return;
+    }
+
+    alert("Font uploaded successfully!");
+    fontUploadInput.value = "";
+    await fetchFonts();
+  } catch (err) {
+    console.error("Failed to upload font", err);
+    alert("Failed to upload font");
+  }
+});
+
+// Initialize page - load fonts, categories and articles
+async function init() {
+  await fetchFonts();
   await refreshCategoryDropdowns();
-  currentCategoryFilter = null;
+  await fetchArticles();
   await displayArticles();
+  // Start on view tab
   viewTab.click();
-});
-
-window.addEventListener("popstate", (event) => {
-  if (event.state?.section === "write") {
-    writeTab.click();
-  } else {
-    viewTab.click();
-  }
-});
-
-window.onload = async () => {
-  if (window.location.hash === "#write") {
-    writeTab.click();
-  } else {
-    viewTab.click();
-  }
-  await refreshCategoryDropdowns();
-};
+}
+init();
