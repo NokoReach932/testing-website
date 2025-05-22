@@ -1,23 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Komnottra</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
 </head>
 <body>
   <header>
-      </div>
-      <img src="logo.png" alt="Komnottra Logo" class="logo">
-      <div id="menuToggle" class="menu-toggle">&#9776;</div>
     </div>
+    <img src="logo.png" alt="Komnottra Logo" class="logo" />
+    <div id="menuToggle" class="menu-toggle">&#9776;</div>
   </header>
-   <!-- Categories Row (Navigation-style menu) -->
-      <div id="categoryNav" class="category-nav">
-        <!-- JavaScript will populate this section with category buttons -->
-      </div>
+  <!-- Categories Row (Navigation-style menu) -->
+  <div id="categoryNav" class="category-nav">
+    <!-- JavaScript will populate this section with category buttons -->
+  </div>
 
   <div id="overlay" class="overlay"></div>
 
@@ -40,9 +39,9 @@
         <select id="categorySelect">
           <option value="" disabled selected>Select Category (Optional)</option>
         </select>
-        <input type="text" id="title" placeholder="Article Title" required>
+        <input type="text" id="title" placeholder="Article Title" required />
         <textarea id="content" rows="8" placeholder="Article Content" required></textarea>
-        <input type="file" id="imageUpload" accept="image/*">
+        <input type="file" id="imageUpload" accept="image/*" />
         <button type="submit">Publish</button>
       </form>
 
@@ -51,7 +50,7 @@
         <h3>Category Management</h3>
 
         <div class="category-form">
-          <input type="text" id="newCategory" placeholder="New Category Name">
+          <input type="text" id="newCategory" placeholder="New Category Name" />
           <button type="button" id="createCategoryBtn">Create Category</button>
         </div>
 
@@ -60,6 +59,11 @@
             <option disabled selected>Select Category to Delete</option>
           </select>
           <button type="button" id="deleteCategoryBtn">Delete Category</button>
+        </div>
+
+        <!-- NEW: Editable Categories container for renaming -->
+        <div id="editCategoriesContainer" style="margin-top: 20px;">
+          <!-- Editable category inputs + save buttons inserted here by JS -->
         </div>
       </div>
 
@@ -70,24 +74,24 @@
 
   <script src="script.js"></script>
   <script>
-    const menuToggle = document.getElementById('menuToggle');
-    const sideMenu = document.getElementById('sideMenu');
-    const overlay = document.getElementById('overlay');
+    const menuToggle = document.getElementById("menuToggle");
+    const sideMenu = document.getElementById("sideMenu");
+    const overlay = document.getElementById("overlay");
 
-    menuToggle.addEventListener('click', () => {
-      sideMenu.classList.toggle('open');
-      overlay.classList.toggle('active');
+    menuToggle.addEventListener("click", () => {
+      sideMenu.classList.toggle("open");
+      overlay.classList.toggle("active");
     });
 
-    overlay.addEventListener('click', () => {
-      sideMenu.classList.remove('open');
-      overlay.classList.remove('active');
+    overlay.addEventListener("click", () => {
+      sideMenu.classList.remove("open");
+      overlay.classList.remove("active");
     });
 
-    document.querySelectorAll('#sideMenu button').forEach(button => {
-      button.addEventListener('click', () => {
-        sideMenu.classList.remove('open');
-        overlay.classList.remove('active');
+    document.querySelectorAll("#sideMenu button").forEach((button) => {
+      button.addEventListener("click", () => {
+        sideMenu.classList.remove("open");
+        overlay.classList.remove("active");
       });
     });
   </script>
