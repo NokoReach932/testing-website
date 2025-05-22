@@ -290,7 +290,7 @@ button:hover {
 }
 
 .category-btn.active {
-  background-color: #1e1d1d;
+  background-color: #000;
   font-weight: bold;
 }
 
