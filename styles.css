@@ -309,6 +309,13 @@ button:hover {
   padding: 0 1rem;
 }
 
+.article-full p {
+  font-size: 16px;
+  line-height: 1.8;
+  margin-bottom: 1em;
+  word-break: break-word;
+}
+
 @media (max-width: 480px) {
   .article-full {
     padding: 0 0.5rem;
