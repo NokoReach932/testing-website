@@ -268,12 +268,12 @@ button:hover {
 /* -------------------------------- */
 .category-nav {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* fixed 3 columns */
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 10px;
   margin-bottom: 1.5rem;
   padding: 1rem;
-  background-color: #f0f0f0;
-  border: 1px solid black;  /* black border around container */
+  background-color: #f0f0f0;  /* light background box */
+  border: 1px solid black;    /* black border line */
   border-radius: 8px;
   max-width: 100%;
 }
@@ -287,11 +287,6 @@ button:hover {
   font-size: 0.9rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  border-bottom: 1px solid black; /* horizontal line below each button */
-}
-
-.category-button:nth-last-child(-n + 3) {
-  border-bottom: none; /* remove bottom border for last row */
 }
 
 .category-button:hover {
