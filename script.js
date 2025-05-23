@@ -1,5 +1,6 @@
-// Fix: prevent redeclaration error
-var API_BASE = typeof API_BASE !== "undefined" ? API_BASE : "https://komnottra-backend.onrender.com"; // Backend URL
+if (typeof API_BASE === "undefined") {
+  API_BASE = "https://komnottra-backend.onrender.com"; // Fallback backend URL
+}
 
 const writeTab = document.getElementById("writeTab");
 const viewTab = document.getElementById("viewTab");
