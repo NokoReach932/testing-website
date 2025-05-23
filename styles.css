@@ -151,6 +151,7 @@ header {
 }
 
 .article-preview img {
+  width: fit-content;
   height: fit-content;
   max-height: 300px;      /* Optional limit on height */
   object-fit: contain;    /* Show full image without cropping */
