@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Komnottra</title>
+  <title>Komnottra - Home</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
 </head>
@@ -16,200 +16,30 @@
   <div id="overlay" class="overlay"></div>
 
   <nav id="sideMenu" class="side-menu">
-    <button id="viewTab" class="active">Home</button>
-    <button id="writeTab">Admin Write</button>
+    <a href="index.html"><button class="active">Home</button></a>
+    <a href="index.html#write"><button id="writeTab">Admin Write</button></a>
+    <button id="logoutBtn" style="display:none;">Logout Admin</button>
   </nav>
 
-  <!-- Categories Row -->
-  <div id="categoryNav" class="category-nav"></div>
-
-  <div class="container">
-    <!-- Article List / Home Section -->
-    <section id="viewSection" class="section active">
-      <div id="articlesList"></div>
-    </section>
-
-    <!-- Admin Write Section -->
-    <section id="writeSection" class="section hidden">
-      <h2>Write New Article</h2>
-      <form id="articleForm">
-        <select id="categorySelect">
-          <option value="" disabled selected>Select Category (Optional)</option>
-        </select>
-        <input type="text" id="title" placeholder="Article Title" required />
-        <textarea id="content" rows="8" placeholder="Article Content" required></textarea>
-        <input type="file" id="imageUpload" accept="image/*" />
-        <button type="submit">Publish</button>
-      </form>
-
-      <div id="categoryPanel" class="admin-panel">
-        <h3>Category Management</h3>
-        <div class="category-form">
-          <input type="text" id="newCategory" placeholder="New Category Name" />
-          <button type="button" id="createCategoryBtn">Create Category</button>
-        </div>
-
-        <div class="category-delete">
-          <select id="deleteCategorySelect">
-            <option disabled selected>Select Category to Delete</option>
-          </select>
-          <button type="button" id="deleteCategoryBtn">Delete Category</button>
-        </div>
-      </div>
-
-      <div id="adminArticles"></div>
-    </section>
-  </div>
+  <main>
+    <!-- Your existing main content -->
+    <section id="viewSection" class="section active">...</section>
+    <section id="writeSection" class="section">...</section>
+  </main>
 
   <footer style="text-align:center; padding:1rem; background:#f5f5f5;">
     <p>&copy; 2025 Komnottra</p>
   </footer>
 
+  <script src="script.js"></script>
   <script>
-    const API_BASE = "https://komnottra-backend.onrender.com";
-
-    // Menu toggle
-    const menuToggle = document.getElementById("menuToggle");
-    const sideMenu = document.getElementById("sideMenu");
-    const overlay = document.getElementById("overlay");
-
-    menuToggle.addEventListener("click", () => {
-      sideMenu.classList.toggle("open");
-      overlay.classList.toggle("active");
-    });
-
-    overlay.addEventListener("click", () => {
-      sideMenu.classList.remove("open");
-      overlay.classList.remove("active");
-    });
-
-    // Logo hover animation
-    const logo = document.querySelector(".logo");
-    if (logo && logo.dataset.animated && logo.dataset.static) {
-      logo.addEventListener("mouseover", () => {
-        logo.src = logo.dataset.animated;
-      });
-      logo.addEventListener("mouseout", () => {
-        logo.src = logo.dataset.static;
-      });
-    }
-
-    // Tabs
-    const viewTab = document.getElementById("viewTab");
-    const writeTab = document.getElementById("writeTab");
-    const viewSection = document.getElementById("viewSection");
-    const writeSection = document.getElementById("writeSection");
-
-    viewTab.addEventListener("click", () => {
-      showSection("view");
-    });
-
-    writeTab.addEventListener("click", () => {
-      showSection("write");
-    });
-
-    function showSection(section) {
-      viewTab.classList.remove("active");
-      writeTab.classList.remove("active");
-      viewSection.classList.add("hidden");
-      writeSection.classList.add("hidden");
-
-      if (section === "view") {
-        viewTab.classList.add("active");
-        viewSection.classList.remove("hidden");
-      } else if (section === "write") {
-        writeTab.classList.add("active");
-        writeSection.classList.remove("hidden");
-      }
-
-      sideMenu.classList.remove("open");
-      overlay.classList.remove("active");
-    }
-
-    // Categories UI
-    const categoryNav = document.getElementById("categoryNav");
-    const categorySelect = document.getElementById("categorySelect");
-    const deleteCategorySelect = document.getElementById("deleteCategorySelect");
-
-    async function fetchCategories() {
-      try {
-        const res = await fetch(`${API_BASE}/categories`);
-        if (!res.ok) throw new Error("Failed to fetch categories");
-        const categories = await res.json();
-        populateCategories(categories);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    function populateCategories(categories) {
-      categoryNav.innerHTML = '<button data-category="" class="active">All</button>' + categories.map(cat => `<button data-category="${cat}">${cat}</button>`).join("");
-      categorySelect.innerHTML = '<option value="" disabled selected>Select Category (Optional)</option>' + categories.map(cat => `<option value="${cat}">${cat}</option>`).join("");
-      deleteCategorySelect.innerHTML = '<option disabled selected>Select Category to Delete</option>' + categories.map(cat => `<option value="${cat}">${cat}</option>`).join("");
-
-      // Add click event for category buttons in nav
-      [...categoryNav.querySelectorAll("button")].forEach(btn => {
-        btn.addEventListener("click", () => {
-          loadArticles(btn.dataset.category);
-          // Highlight selected category
-          [...categoryNav.querySelectorAll("button")].forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-        });
-      });
-    }
-
-    // Articles list and filtering
-    const articlesList = document.getElementById("articlesList");
-
-    async function fetchArticles(category = "") {
-      let url = `${API_BASE}/articles`;
-      if (category) url += `?category=${encodeURIComponent(category)}`;
-      try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Failed to fetch articles");
-        const articles = await res.json();
-        return articles;
-      } catch (err) {
-        console.error(err);
-        return [];
-      }
-    }
-
-    async function loadArticles(category = "") {
-      articlesList.innerHTML = "<p>កំពុងទាញយកព័ត៌មាន...</p>";
-      const articles = await fetchArticles(category);
-      if (articles.length === 0) {
-        articlesList.innerHTML = "<p>មិនមានព័ត៌មានសម្រាប់ប្រភេទនេះទេ។</p>";
-        return;
-      }
-      articlesList.innerHTML = articles
-        .map(
-          (a) => `
-        <article class="article-preview" data-id="${a.id}">
-          <h2><a href="article.html?id=${a.id}">${a.title}</a></h2>
-          ${a.category ? `<div class="category">ប្រភេទ៖ ${a.category}</div>` : ""}
-          <div class="date">បានផ្សព្វផ្សាយ: ${formatDate(a.createdAt)}</div>
-          ${a.image ? `<img src="${a.image}" alt="Article Image" />` : ""}
-          <p>${a.content.substring(0, 150)}...</p>
-        </article>
-      `
-        )
-        .join("");
-    }
-
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      const options = { hour: "numeric", minute: "numeric", hour12: true };
-      const datePart = `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
-      const timePart = date.toLocaleTimeString([], options);
-      return `${datePart} ${timePart}`;
-    }
-
-    // Initial load
-    fetchCategories().then(() => loadArticles());
-
-    // TODO: Add your admin form submission and category management logic here
-
+    // Initialize page-specific logic
+    window.onload = async function () {
+      await refreshCategoryDropdowns();  // assuming defined in script.js
+      updateAdminUI();
+      // Activate the view tab by default
+      document.getElementById('viewTab').click();
+    };
   </script>
 </body>
 </html>
