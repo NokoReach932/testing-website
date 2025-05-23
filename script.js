@@ -278,11 +278,9 @@ if (viewTab && writeTab && viewSection && writeSection) {
   /* Home (viewTab) — new logic: redirect to index if not already there */
   viewTab.addEventListener("click", async () => {
     if (!isIndexPage) {
-      // We are on article.html (or any other page) → go home.
       location.href = "index.html";
       return;
     }
-    // Already on index.html → just switch sections
     viewTab.classList.add("active");
     writeTab.classList.remove("active");
     viewSection.classList.add("active");
@@ -292,10 +290,9 @@ if (viewTab && writeTab && viewSection && writeSection) {
     await displayArticles();
   });
 
-  /* Admin Write */
+  /* Admin Write — redirect to index.html#write if not on index */
   writeTab.addEventListener("click", async () => {
     if (!isIndexPage) {
-      // On article.html but admin wants write → still redirect to index first
       location.href = "index.html#write";
       return;
     }
