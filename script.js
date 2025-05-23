@@ -293,7 +293,7 @@ if (viewTab && writeTab && viewSection && writeSection) {
   /* Admin Write — redirect to index.html#write if not on index */
   writeTab.addEventListener("click", async () => {
     if (!isIndexPage) {
-      location.href = "index.html#write";
+      location.href = "/index.html#write";
       return;
     }
     if (!isAdmin) {
