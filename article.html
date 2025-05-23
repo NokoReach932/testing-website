@@ -17,6 +17,7 @@
 
   <nav id="sideMenu" class="side-menu">
     <a href="index.html"><button class="active">Home</button></a>
+    <a href="index.html#write"><button id="writeTab">Admin Write</button></a>
   </nav>
 
   <div class="container">
@@ -47,6 +48,14 @@
     overlay.addEventListener("click", () => {
       sideMenu.classList.remove("open");
       overlay.classList.remove("active");
+    });
+
+    // Close side menu and overlay when any side menu link/button clicked
+    document.querySelectorAll("#sideMenu a, #sideMenu button").forEach(el => {
+      el.addEventListener("click", () => {
+        sideMenu.classList.remove("open");
+        overlay.classList.remove("active");
+      });
     });
 
     const logo = document.querySelector(".logo");
