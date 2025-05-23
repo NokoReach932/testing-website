@@ -218,7 +218,7 @@ async function displayArticles() {
     : [...articleData];
 
   if (!filteredArticles.length) {
-    articlesList.innerHTML = "<p>No articles available.</p>";
+    articlesList.innerHTML = "<p style="color: white;">No articles available.</p>";
     return;
   }
 
