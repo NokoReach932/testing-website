@@ -18,6 +18,8 @@
   <nav id="sideMenu" class="side-menu">
     <a href="index.html"><button class="active">Home</button></a>
     <a href="index.html#write"><button id="writeTab">Admin Write</button></a>
+    <button id="adminLoginBtn">Admin Login</button>
+    <button id="adminLogoutBtn" style="display:none;">Logout Admin</button>
   </nav>
 
   <div class="container">
@@ -33,88 +35,13 @@
     <p>&copy; 2025 Komnottra</p>
   </footer>
 
+  <script src="script.js"></script>
   <script>
-    const API_BASE = "https://komnottra-backend.onrender.com";
-
-    const menuToggle = document.getElementById("menuToggle");
-    const sideMenu = document.getElementById("sideMenu");
-    const overlay = document.getElementById("overlay");
-
-    menuToggle.addEventListener("click", () => {
-      sideMenu.classList.toggle("open");
-      overlay.classList.toggle("active");
-    });
-
-    overlay.addEventListener("click", () => {
-      sideMenu.classList.remove("open");
-      overlay.classList.remove("active");
-    });
-
-    // Close side menu and overlay when any side menu link/button clicked
-    document.querySelectorAll("#sideMenu a, #sideMenu button").forEach(el => {
-      el.addEventListener("click", () => {
-        sideMenu.classList.remove("open");
-        overlay.classList.remove("active");
-      });
-    });
-
-    const logo = document.querySelector(".logo");
-    if (logo && logo.dataset.animated && logo.dataset.static) {
-      logo.addEventListener("mouseover", () => {
-        logo.src = logo.dataset.animated;
-      });
-      logo.addEventListener("mouseout", () => {
-        logo.src = logo.dataset.static;
-      });
-    }
-
-    // Get article ID from URL
-    const params = new URLSearchParams(window.location.search);
-    const articleId = params.get("id");
-
-    const articleContainer = document.getElementById("articleContainer");
-
-    async function fetchArticle(id) {
-      try {
-        const res = await fetch(`${API_BASE}/articles/${id}`);
-        if (!res.ok) throw new Error("Failed to fetch article");
-        const article = await res.json();
-        return article;
-      } catch (err) {
-        console.error(err);
-        return null;
-      }
-    }
-
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      const options = { hour: "numeric", minute: "numeric", hour12: true };
-      const datePart = `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
-      const timePart = date.toLocaleTimeString([], options);
-      return `${datePart} ${timePart}`;
-    }
-
-    async function loadArticle() {
-      if (!articleId) {
-        articleContainer.innerHTML = "<p>អត្ថបទមិនត្រូវបានរកឃើញ។</p>";
-        return;
-      }
-      articleContainer.innerHTML = "<p>កំពុងទាញយកព័ត៌មាន...</p>";
-      const article = await fetchArticle(articleId);
-      if (!article) {
-        articleContainer.innerHTML = "<p>អត្ថបទមិនត្រូវបានរកឃើញ។</p>";
-        return;
-      }
-      articleContainer.innerHTML = `
-        <h1>${article.title}</h1>
-        ${article.category ? `<div class="category">ប្រភេទ៖ ${article.category}</div>` : ""}
-        <div class="date">បានផ្សព្វផ្សាយ: ${formatDate(article.createdAt)}</div>
-        ${article.image ? `<img src="${article.image}" alt="Article Image" />` : ""}
-        <div class="content">${article.content.replace(/\n/g, "<br>")}</div>
-      `;
-    }
-
-    loadArticle();
+    // Load article after common script is loaded
+    window.onload = function () {
+      updateArticleAdminUI();
+      loadArticle();
+    };
   </script>
 </body>
 </html>
