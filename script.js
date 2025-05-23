@@ -1,4 +1,5 @@
-const API_BASE = "https://komnottra-backend.onrender.com"; // Backend URL
+// Fix: prevent redeclaration error
+var API_BASE = typeof API_BASE !== "undefined" ? API_BASE : "https://komnottra-backend.onrender.com"; // Backend URL
 
 const writeTab = document.getElementById("writeTab");
 const viewTab = document.getElementById("viewTab");
@@ -6,7 +7,6 @@ const writeSection = document.getElementById("writeSection");
 const viewSection = document.getElementById("viewSection");
 const form = document.getElementById("articleForm");
 const articlesList = document.getElementById("articlesList");
-// const fullArticle = document.getElementById("fullArticle"); // Removed as no longer needed
 const adminArticles = document.getElementById("adminArticles");
 const categoryNav = document.getElementById("categoryNav");
 
@@ -35,7 +35,7 @@ let isAdmin = false;
 const adminUsername = "admin";
 const adminPassword = "123";
 let articleData = [];
-let filteredArticles = []; // store currently displayed filtered articles
+let filteredArticles = [];
 let currentCategoryFilter = null;
 
 async function fetchArticles() {
@@ -120,7 +120,7 @@ function displayCategoryNav(categories) {
   categoryNav.innerHTML = "";
 
   const allBtn = document.createElement("button");
-  allBtn.textContent = "ព័ត៌មានចម្រុះ"; // All news (localized)
+  allBtn.textContent = "ព័ត៌មានចម្រុះ";
   allBtn.classList.add("category-btn");
   if (!currentCategoryFilter) allBtn.classList.add("active");
   allBtn.addEventListener("click", () => {
@@ -323,7 +323,7 @@ if (viewTab && writeTab && viewSection && writeSection) {
     writeSection.classList.add("active");
     viewSection.classList.remove("active");
     history.pushState({ section: "write" }, "Write Article", "#write");
-    currentCategoryFilter = null; // reset filter on write tab as well
+    currentCategoryFilter = null;
     await fetchArticles();
     displayAdminArticles();
   });
