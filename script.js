@@ -51,13 +51,6 @@ let filteredArticles      = [];
 let currentCategoryFilter = null;
 
 /* ------------------------------------------------------------------
-   Read admin state from localStorage on load  // ADDED
------------------------------------------------------------------- */
-if (localStorage.getItem("isAdmin") === "true") {
-  isAdmin = true;
-}
-
-/* ------------------------------------------------------------------
    Helpers: fetches
 ------------------------------------------------------------------ */
 async function fetchArticles() {
@@ -285,7 +278,7 @@ if (viewTab && writeTab && viewSection && writeSection) {
   /* Home (viewTab) — new logic: redirect to index if not already there */
   viewTab.addEventListener("click", async () => {
     if (!isIndexPage) {
-      location.href = "index.html";
+      location.href = "index.html#view";
       return;
     }
     viewTab.classList.add("active");
@@ -297,14 +290,13 @@ if (viewTab && writeTab && viewSection && writeSection) {
     await displayArticles();
   });
 
-  /* Admin Write — FIXED: prompt login first on ANY page, then redirect or switch tab */
+  /* Admin Write — prompt login first on ANY page, then redirect or switch tab */
   writeTab.addEventListener("click", async () => {
     if (!isAdmin) {
       const u = prompt("Enter admin username:");
       const p = prompt("Enter admin password:");
       if (u === adminUsername && p === adminPassword) {
         isAdmin = true;
-        localStorage.setItem("isAdmin", "true");  // ADDED: persist login state
         alert("Welcome, Admin!");
       } else {
         alert("Incorrect credentials.");
@@ -363,5 +355,10 @@ if (form) {
 ------------------------------------------------------------------ */
 window.onload = async () => {
   await refreshCategoryDropdowns();
-  if (isIndexPage && viewTab) viewTab.click();
+
+  if (location.hash === "#write") {
+    if (writeTab) writeTab.click();
+  } else {
+    if (viewTab) viewTab.click();
+  }
 };
