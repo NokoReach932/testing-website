@@ -33,10 +33,9 @@
       <a href="index.html" class="back-link">← ត្រឡប់ទៅទំព័រដើម</a>
     </section>
 
-    <!-- Hidden admin write section (for parity with index.html, can stay hidden) -->
+    <!-- Hidden admin write section -->
     <section id="writeSection" class="section">
       <h2>Write New Article</h2>
-      <!-- Optionally replicate write form and category management if needed -->
       <p>Admin panel not available on this page.</p>
     </section>
   </div>
@@ -46,7 +45,6 @@
   <script>
     const API_BASE = "https://komnottra-backend.onrender.com";
 
-    // Menu toggle functionality (same as index.html)
     const menuToggle = document.getElementById('menuToggle');
     const sideMenu = document.getElementById('sideMenu');
     const overlay = document.getElementById('overlay');
@@ -68,10 +66,8 @@
       });
     });
 
-    // Fetch and display categories - assuming script.js handles this on index.html,
-    // so calling a function here if available (you can adapt if needed).
     if (typeof loadCategories === "function") {
-      loadCategories(); // You should have this function in script.js to populate #categoryNav
+      loadCategories();
     }
 
     async function fetchArticleById(id) {
@@ -112,10 +108,13 @@
       }
 
       container.innerHTML = `
-        <h1>${article.title}</h1>
-        ${article.createdAt ? `<p class="article-date">${formatDate(article.createdAt)}</p>` : ""}
-        ${article.image ? `<img src="${article.image}" alt="Article Image" />` : ""}
-        <div class="article-content">${article.content}</div>
+        <div class="article-container">
+          <h1 class="article-title">${article.title}</h1>
+          ${article.createdAt ? `<p class="article-date">Published Date: ${formatDate(article.createdAt)}</p>` : ""}
+          ${article.category ? `<p class="article-category">Category: ${article.category}</p>` : ""}
+          ${article.image ? `<img src="${article.image}" alt="Article Image" />` : ""}
+          <div class="article-content">${article.content}</div>
+        </div>
       `;
     }
 
