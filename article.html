@@ -17,7 +17,7 @@
 
   <nav id="sideMenu" class="side-menu">
     <a href="index.html"><button class="active">Home</button></a>
-    <a href="index.html#write"><button id="writeTab">Admin Write</button></a>
+    <button id="adminWriteBtn">Admin Write</button>
   </nav>
 
   <div class="container">
@@ -67,6 +67,22 @@
         logo.src = logo.dataset.static;
       });
     }
+
+    // Admin login info (must match script.js)
+    const adminUsername = "admin";
+    const adminPassword = "123";
+
+    const adminWriteBtn = document.getElementById("adminWriteBtn");
+    adminWriteBtn.addEventListener("click", () => {
+      const inputUser = prompt("Enter admin username:");
+      const inputPass = prompt("Enter admin password:");
+      if (inputUser === adminUsername && inputPass === adminPassword) {
+        alert("Welcome, Admin!");
+        window.location.href = "index.html#write";
+      } else {
+        alert("Incorrect credentials.");
+      }
+    });
 
     // Get article ID from URL
     const params = new URLSearchParams(window.location.search);
