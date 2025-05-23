@@ -139,8 +139,8 @@ header {
   padding: 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  width: 250px;
-  height: 320px; /* Fixed height */
+  width: 320px;
+  /* Remove fixed height to allow flexible height based on content */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   overflow: hidden;
 }
@@ -153,8 +153,11 @@ header {
 .article-preview img {
   width: 100%;
   height: auto;
+  max-height: 300px;      /* Optional limit on height */
+  object-fit: contain;    /* Show full image without cropping */
+  border-radius: 12px;
   margin-bottom: 1rem;
-  border-radius: 8px;
+  display: block;
 }
 
 /* Article content styles */
