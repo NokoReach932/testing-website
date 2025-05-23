@@ -161,6 +161,20 @@ header {
   box-sizing: border-box;
 }
 
+/* Updated article preview title: clamp to 2 lines with ellipsis */
+.article-preview .article-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 0 0.5rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;      /* limit to 2 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2em;
+  max-height: 2.4em;          /* line-height * 2 lines */
+}
+
 /* Article content styles */
 .article-content img {
   max-width: 100%;
@@ -170,18 +184,11 @@ header {
   box-sizing: border-box;
 }
 
-/* Article title */
+/* Article title for full article (unchanged) */
 .article-title {
   font-size: 2rem;
   margin: 0;
   font-weight: bold;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;        /* limit to 2 lines */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.2em;           /* adjust line height */
-  max-height: 2.4em;            /* line-height * 2 lines */
 }
 
 /* Form styles */
@@ -360,4 +367,6 @@ button:hover {
 }
 
 /* Mobile responsive tweaks for article page */
-@
+@media (max-width: 600px) {
+  /* your existing or additional styles for mobile article page */
+}
