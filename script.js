@@ -290,12 +290,8 @@ if (viewTab && writeTab && viewSection && writeSection) {
     await displayArticles();
   });
 
-  /* Admin Write — redirect to index.html#write if not on index */
+  /* Admin Write — FIXED: prompt login first on ANY page, then redirect or switch tab */
   writeTab.addEventListener("click", async () => {
-    if (!isIndexPage) {
-      location.href = "/index.html#write";
-      return;
-    }
     if (!isAdmin) {
       const u = prompt("Enter admin username:");
       const p = prompt("Enter admin password:");
@@ -304,9 +300,17 @@ if (viewTab && writeTab && viewSection && writeSection) {
         alert("Welcome, Admin!");
       } else {
         alert("Incorrect credentials.");
-        return;
+        return; // Stop here if login failed
       }
     }
+
+    if (!isIndexPage) {
+      // After successful login, redirect to index page #write
+      location.href = "index.html#write";
+      return;
+    }
+
+    // Already on index page, just switch tabs
     writeTab.classList.add("active");
     viewTab.classList.remove("active");
     writeSection.classList.add("active");
