@@ -171,8 +171,6 @@ header {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.2em;
-  max-height: 2.4em;          /* line-height * 2 lines */
 }
 
 /* Article content styles */
