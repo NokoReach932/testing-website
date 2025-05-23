@@ -1,5 +1,6 @@
 const API_BASE = "https://komnottra-backend.onrender.com"; // Backend URL
 
+// Elements
 const writeTab = document.getElementById("writeTab");
 const viewTab = document.getElementById("viewTab");
 const writeSection = document.getElementById("writeSection");
@@ -14,6 +15,7 @@ const deleteCategoryBtn = document.getElementById("deleteCategoryBtn");
 const newCategoryInput = document.getElementById("newCategory");
 const deleteCategorySelect = document.getElementById("deleteCategorySelect");
 const categorySelect = document.getElementById("categorySelect");
+
 const logo = document.querySelector(".logo");
 const logoImg = document.querySelector(".logo");
 
@@ -21,6 +23,16 @@ const menuToggle = document.getElementById("menuToggle");
 const sideMenu = document.getElementById("sideMenu");
 const overlay = document.getElementById("overlay");
 
+// Admin login info & state
+const adminUsername = "admin";
+const adminPassword = "123";
+let isAdmin = false;
+
+let articleData = [];
+let filteredArticles = [];
+let currentCategoryFilter = null;
+
+// Logo hover animation
 logoImg.addEventListener("mouseenter", () => {
   logoImg.src = logoImg.getAttribute("data-animated");
 });
@@ -29,17 +41,12 @@ logoImg.addEventListener("mouseleave", () => {
   logoImg.src = logoImg.getAttribute("data-static");
 });
 
-let isAdmin = false;
-const adminUsername = "admin";
-const adminPassword = "123";
-let articleData = [];
-let filteredArticles = [];
-let currentCategoryFilter = null;
-
+// Fetch articles from backend
 async function fetchArticles() {
   try {
     const res = await fetch(`${API_BASE}/articles`);
     articleData = await res.json();
+    // Assign IDs if missing
     articleData.forEach((article, idx) => {
       if (!article.id) article.id = idx + 1;
     });
@@ -50,6 +57,7 @@ async function fetchArticles() {
   }
 }
 
+// Save article to backend
 async function saveArticleToBackend(article) {
   try {
     const res = await fetch(`${API_BASE}/articles`, {
@@ -63,6 +71,7 @@ async function saveArticleToBackend(article) {
   }
 }
 
+// Delete article from backend
 async function deleteArticleFromBackend(id) {
   try {
     const res = await fetch(`${API_BASE}/articles/${id}`, {
@@ -74,6 +83,7 @@ async function deleteArticleFromBackend(id) {
   }
 }
 
+// Fetch categories
 async function fetchCategories() {
   try {
     const res = await fetch(`${API_BASE}/categories`);
@@ -84,6 +94,7 @@ async function fetchCategories() {
   }
 }
 
+// Refresh category dropdowns
 async function refreshCategoryDropdowns() {
   const categories = await fetchCategories();
 
@@ -105,11 +116,12 @@ async function refreshCategoryDropdowns() {
   displayCategoryNav(categories);
 }
 
+// Display categories as navigation buttons
 function displayCategoryNav(categories) {
   categoryNav.innerHTML = "";
 
   const allBtn = document.createElement("button");
-  allBtn.textContent = "ព័ត៌មានចម្រុះ";
+  allBtn.textContent = "ព័ត៌មានចម្រុះ"; // Show all (Mixed news)
   allBtn.classList.add("category-btn");
   if (!currentCategoryFilter) allBtn.classList.add("active");
   allBtn.addEventListener("click", () => {
@@ -133,10 +145,14 @@ function displayCategoryNav(categories) {
   });
 }
 
+// Update active state for category nav buttons
 function updateCategoryNavActive() {
   const buttons = categoryNav.querySelectorAll("button");
   buttons.forEach(btn => {
-    if (btn.textContent === currentCategoryFilter || (btn.textContent === "Show All" && !currentCategoryFilter)) {
+    if (
+      btn.textContent === currentCategoryFilter ||
+      (!currentCategoryFilter && btn.textContent === "ព័ត៌មានចម្រុះ")
+    ) {
       btn.classList.add("active");
     } else {
       btn.classList.remove("active");
@@ -144,13 +160,13 @@ function updateCategoryNavActive() {
   });
 }
 
+// Create new category
 createCategoryBtn.addEventListener("click", async () => {
   const newCategory = newCategoryInput.value.trim();
   if (!newCategory) {
     alert("Please enter a category name.");
     return;
   }
-
   try {
     const res = await fetch(`${API_BASE}/categories`, {
       method: "POST",
@@ -172,13 +188,13 @@ createCategoryBtn.addEventListener("click", async () => {
   }
 });
 
+// Delete selected category
 deleteCategoryBtn.addEventListener("click", async () => {
   const selected = deleteCategorySelect.value;
   if (!selected) {
     alert("Please select a category to delete.");
     return;
   }
-
   if (!confirm(`Delete category "${selected}"? This cannot be undone.`)) return;
 
   try {
@@ -199,9 +215,9 @@ deleteCategoryBtn.addEventListener("click", async () => {
   }
 });
 
+// Display articles filtered by currentCategoryFilter
 async function displayArticles() {
   articlesList.innerHTML = "";
-
   await fetchArticles();
 
   filteredArticles = currentCategoryFilter
@@ -213,7 +229,7 @@ async function displayArticles() {
     return;
   }
 
-  filteredArticles.forEach((article) => {
+  filteredArticles.forEach(article => {
     const div = document.createElement("div");
     div.classList.add("article-preview");
     div.innerHTML = `
@@ -225,15 +241,17 @@ async function displayArticles() {
     div.addEventListener("click", () => {
       window.location.href = `article.html?id=${article.id}`;
     });
+
     articlesList.appendChild(div);
   });
 
   updateCategoryNavActive();
 }
 
+// Display articles for admin (with delete button)
 function displayAdminArticles() {
   adminArticles.innerHTML = "";
-  articleData.forEach((article) => {
+  articleData.forEach(article => {
     const div = document.createElement("div");
     div.innerHTML = `
       <hr>
@@ -244,6 +262,7 @@ function displayAdminArticles() {
   });
 }
 
+// Delete article (exposed globally)
 window.deleteArticle = async function (id) {
   if (!isAdmin) return;
   if (!confirm("Are you sure you want to delete this article?")) return;
@@ -255,14 +274,7 @@ window.deleteArticle = async function (id) {
   displayAdminArticles();
 };
 
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  const options = { hour: "numeric", minute: "numeric", hour12: true };
-  const datePart = `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
-  const timePart = date.toLocaleTimeString([], options);
-  return `${datePart} ${timePart}`;
-}
-
+// Convert uploaded image to base64 string
 function convertImageToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -272,6 +284,7 @@ function convertImageToBase64(file) {
   });
 }
 
+// Tabs switching logic
 viewTab.addEventListener("click", async () => {
   viewTab.classList.add("active");
   writeTab.classList.remove("active");
@@ -303,34 +316,36 @@ writeTab.addEventListener("click", async () => {
   await fetchArticles();
   displayAdminArticles();
 
-  // Close side menu and overlay when write tab clicked
+  // Close side menu and overlay
   if (sideMenu.classList.contains("open")) {
     sideMenu.classList.remove("open");
     overlay.classList.remove("active");
   }
 });
 
-logo.addEventListener("click", async () => {
+// Clicking logo switches to view tab
+logo.addEventListener("click", () => {
   viewTab.click();
 });
 
-form.addEventListener("submit", async function (e) {
+// Form submission to save article
+form.addEventListener("submit", async e => {
   e.preventDefault();
-  const title = document.getElementById("title").value;
-  const content = document.getElementById("content").value;
+
+  const title = document.getElementById("title").value.trim();
+  const content = document.getElementById("content").value.trim();
   const imageInput = document.getElementById("imageUpload");
   const imageFile = imageInput.files[0];
-
-  let imageDataURL = "";
-  if (imageFile) {
-    imageDataURL = await convertImageToBase64(imageFile);
-  }
-
   const category = categorySelect.value;
 
   if (!title || !content) {
     alert("Title and content are required.");
     return;
+  }
+
+  let imageDataURL = "";
+  if (imageFile) {
+    imageDataURL = await convertImageToBase64(imageFile);
   }
 
   const newArticle = {
@@ -350,6 +365,7 @@ form.addEventListener("submit", async function (e) {
   writeTab.click();
 });
 
+// Menu toggle
 menuToggle.addEventListener("click", () => {
   sideMenu.classList.toggle("open");
   overlay.classList.toggle("active");
@@ -360,7 +376,8 @@ overlay.addEventListener("click", () => {
   overlay.classList.remove("active");
 });
 
-window.onload = async function () {
+// On page load
+window.onload = async () => {
   await refreshCategoryDropdowns();
   viewTab.click();
 };
