@@ -346,3 +346,53 @@ button:hover {
     padding: 0 0.5rem;
   }
 }
+
+/* --- Article page specific styles --- */
+
+.article-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 15px;
+  line-height: 1.6;
+}
+
+.article-container img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 15px 0;
+  border-radius: 8px;
+}
+
+.article-title {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.article-category {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.article-content {
+  font-size: 1.1rem;
+}
+
+/* Mobile responsive tweaks for article page */
+@media (max-width: 600px) {
+  .article-container {
+    padding: 10px;
+    margin: 10px 5px;
+  }
+
+  .article-title {
+    font-size: 1.5rem;
+  }
+
+  .article-content {
+    font-size: 1rem;
+  }
+}
