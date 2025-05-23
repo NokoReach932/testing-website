@@ -123,7 +123,7 @@ header {
 /* Article preview container as 3-column grid */
 #articlesList {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
   padding: 1rem 0;
   overflow-x: visible;
@@ -256,12 +256,10 @@ button:hover {
   margin-bottom: 1.5rem;
 }
 
-/* ------------------------- */
-/*     Responsive styles     */
-/* ------------------------- */
+/* Responsive styles */
 @media (max-width: 900px) {
   #articlesList {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
 }
 
@@ -293,17 +291,22 @@ button:hover {
   }
 }
 
-/* -------------------------------- */
 /* Category Navigation Button Style */
-/* -------------------------------- */
 .category-nav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #2d2a2a;
   border-top: 1px solid black;
   border-bottom: 2px solid #fff;
-  justify-content: center;
-  background: #2d2a2a;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.category-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .category-btn {
@@ -312,10 +315,20 @@ button:hover {
   cursor: pointer;
   border-right: 1px solid #fffdfd;
   font-size: 16px;
+  background-color: #333;
+  color: white;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border-radius: 999px;
+  transition: background-color 0.3s;
 }
 
 .category-btn:last-child {
   border-right: none;
+}
+
+.category-btn:hover {
+  background-color: #555;
 }
 
 .category-btn.active {
@@ -323,9 +336,7 @@ button:hover {
   font-weight: bold;
 }
 
-/* ============================== */
-/* Fix for full article image size */
-/* ============================== */
+/* Full article image size fix */
 .article-full img,
 .article-container img,
 #articleContainer img {
@@ -338,13 +349,11 @@ button:hover {
   box-sizing: border-box;
 }
 
-/* ------------------------------ */
-/* Article Format Adjustment      */
-/* ------------------------------ */
+/* Article Format Adjustment */
 .article-container {
   display: flex;
   flex-direction: column;
-  gap: 1rem; /* spacing between each section */
+  gap: 1rem;
   max-width: 800px;
   margin: 20px auto;
   padding: 15px;
