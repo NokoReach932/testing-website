@@ -6,8 +6,6 @@ const writeSection = document.getElementById("writeSection");
 const viewSection = document.getElementById("viewSection");
 const form = document.getElementById("articleForm");
 const articlesList = document.getElementById("articlesList");
-// Removed fullArticle as it is no longer needed:
-// const fullArticle = document.getElementById("fullArticle");
 const adminArticles = document.getElementById("adminArticles");
 const categoryNav = document.getElementById("categoryNav");
 
@@ -18,6 +16,10 @@ const deleteCategorySelect = document.getElementById("deleteCategorySelect");
 const categorySelect = document.getElementById("categorySelect");
 const logo = document.querySelector(".logo");
 const logoImg = document.querySelector(".logo");
+
+const menuToggle = document.getElementById("menuToggle");
+const sideMenu = document.getElementById("sideMenu");
+const overlay = document.getElementById("overlay");
 
 logoImg.addEventListener("mouseenter", () => {
   logoImg.src = logoImg.getAttribute("data-animated");
@@ -31,7 +33,7 @@ let isAdmin = false;
 const adminUsername = "admin";
 const adminPassword = "123";
 let articleData = [];
-let filteredArticles = []; // store currently displayed filtered articles
+let filteredArticles = [];
 let currentCategoryFilter = null;
 
 async function fetchArticles() {
@@ -199,8 +201,6 @@ deleteCategoryBtn.addEventListener("click", async () => {
 
 async function displayArticles() {
   articlesList.innerHTML = "";
-  // Removed fullArticle clearing as it no longer exists:
-  // fullArticle.innerHTML = "";
 
   await fetchArticles();
 
@@ -216,15 +216,12 @@ async function displayArticles() {
   filteredArticles.forEach((article) => {
     const div = document.createElement("div");
     div.classList.add("article-preview");
-    // Instead of clicking to show full article inline,
-    // redirect to article page with id query param:
     div.innerHTML = `
       ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
       <div class="article-title">${article.title}</div>
       ${article.category ? `<div class="article-category">${article.category}</div>` : ""}
     `;
 
-    // Replace click handler:
     div.addEventListener("click", () => {
       window.location.href = `article.html?id=${article.id}`;
     });
@@ -233,9 +230,6 @@ async function displayArticles() {
 
   updateCategoryNavActive();
 }
-
-// Remove this function as it's no longer used and fullArticle div is removed
-// window.viewFullArticle = function (articleId) { ... }
 
 function displayAdminArticles() {
   adminArticles.innerHTML = "";
@@ -308,6 +302,12 @@ writeTab.addEventListener("click", async () => {
   history.pushState({ section: "write" }, "Write Article", "#write");
   await fetchArticles();
   displayAdminArticles();
+
+  // Close side menu and overlay when write tab clicked
+  if (sideMenu.classList.contains("open")) {
+    sideMenu.classList.remove("open");
+    overlay.classList.remove("active");
+  }
 });
 
 logo.addEventListener("click", async () => {
@@ -348,6 +348,16 @@ form.addEventListener("submit", async function (e) {
   await fetchArticles();
   displayAdminArticles();
   writeTab.click();
+});
+
+menuToggle.addEventListener("click", () => {
+  sideMenu.classList.toggle("open");
+  overlay.classList.toggle("active");
+});
+
+overlay.addEventListener("click", () => {
+  sideMenu.classList.remove("open");
+  overlay.classList.remove("active");
 });
 
 window.onload = async function () {
