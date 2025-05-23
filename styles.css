@@ -239,6 +239,7 @@ button:hover {
 
 /* Admin write section spacing */
 #writeSection > * {
+  color: white;
   margin-bottom: 1.5rem;
 }
 
