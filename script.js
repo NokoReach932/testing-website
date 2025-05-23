@@ -16,6 +16,15 @@ const newCategoryInput = document.getElementById("newCategory");
 const deleteCategorySelect = document.getElementById("deleteCategorySelect");
 const categorySelect = document.getElementById("categorySelect");
 const logo = document.querySelector(".logo");
+const logoImg = document.querySelector(".logo");
+
+logoImg.addEventListener("mouseenter", () => {
+  logoImg.src = logoImg.getAttribute("data-animated");
+});
+
+logoImg.addEventListener("mouseleave", () => {
+  logoImg.src = logoImg.getAttribute("data-static");
+});
 
 let isAdmin = false;
 const adminUsername = "admin";
