@@ -316,10 +316,9 @@ button:hover {
 .article-full img,
 .article-container img,
 #articleContainer img {
-  width: 100%;
-  max-width: 100%;
+  width: 50%;
+  max-width: 50%;
   height: auto;
-  display: block;
   margin: 1rem auto;
   border-radius: 8px;
   box-sizing: border-box;
