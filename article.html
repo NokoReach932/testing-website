@@ -3,44 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Article Details</title>
+  <title>Komnottra - Article</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 2rem;
-      max-width: 700px;
-      line-height: 1.6;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      background: #f9f9f9;
+      color: #333;
     }
     h1 {
       font-size: 2rem;
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.2rem;
     }
-    .category {
-      font-style: italic;
+    .article-date {
+      font-size: 0.9rem;
       color: #666;
       margin-bottom: 1rem;
-    }
-    .date {
-      font-size: 0.9rem;
-      color: #999;
-      margin-bottom: 1.5rem;
     }
     img {
       max-width: 100%;
       height: auto;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
       border-radius: 5px;
     }
-    .content {
+    .article-content {
+      font-size: 1.1rem;
+      line-height: 1.6;
       white-space: pre-wrap; /* preserve line breaks */
-      margin-bottom: 2rem;
     }
     a.back-link {
       display: inline-block;
       margin-top: 2rem;
       text-decoration: none;
-      color: #007bff;
-      font-weight: bold;
+      color: #0077cc;
     }
     a.back-link:hover {
       text-decoration: underline;
@@ -48,17 +45,24 @@
   </style>
 </head>
 <body>
-  <a href="index.html" class="back-link">&larr; ត្រលប់ទៅ ផ្ទាំងព័ត៌មានចម្រុះ</a>
   <div id="articleContainer">
-    <p>កំពុងទាញយកព័ត៌មាន...</p>
+    <p>Loading article...</p>
   </div>
+
+  <a href="index.html" class="back-link">← ត្រឡប់ទៅទំព័រដើម</a>
 
   <script>
     const API_BASE = "https://komnottra-backend.onrender.com";
 
-    function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param);
+    async function fetchArticleById(id) {
+      try {
+        const res = await fetch(`${API_BASE}/articles/${id}`);
+        if (!res.ok) throw new Error("Article not found");
+        return await res.json();
+      } catch (err) {
+        console.error("Failed to fetch article", err);
+        return null;
+      }
     }
 
     function formatDate(dateString) {
@@ -69,44 +73,33 @@
       return `${datePart} ${timePart}`;
     }
 
-    async function fetchArticleById(id) {
-      try {
-        const res = await fetch(`${API_BASE}/articles/${id}`);
-        if (!res.ok) throw new Error("Article not found");
-        return await res.json();
-      } catch (err) {
-        return null;
-      }
-    }
-
     async function displayArticle() {
-      const articleId = getQueryParam("id");
-      const container = document.getElementById("articleContainer");
+      const urlParams = new URLSearchParams(window.location.search);
+      const articleId = urlParams.get("id");
 
       if (!articleId) {
-        container.innerHTML = "<p>មិនមានអត្តសញ្ញាណព័ត៌មាន!</p>";
+        document.getElementById("articleContainer").innerHTML = "<p>Article ID is missing in URL.</p>";
         return;
       }
-
-      container.innerHTML = "<p>កំពុងទាញយកព័ត៌មាន...</p>";
 
       const article = await fetchArticleById(articleId);
 
       if (!article) {
-        container.innerHTML = "<p>ព័ត៌មានដែលអ្នកស្វែងរកមិនមានទេ ឬបានលុបចោល។</p>";
+        document.getElementById("articleContainer").innerHTML = "<p>Article not found.</p>";
         return;
       }
 
+      const container = document.getElementById("articleContainer");
+
       container.innerHTML = `
         <h1>${article.title}</h1>
-        ${article.category ? `<div class="category">ប្រភេទ៖ ${article.category}</div>` : ""}
-        <div class="date">បានផ្សព្វផ្សាយ: ${formatDate(article.createdAt)}</div>
-        ${article.image ? `<img src="${article.image}" alt="Article Image" />` : ""}
-        <div class="content">${article.content}</div>
+        ${article.createdAt ? `<p class="article-date">${formatDate(article.createdAt)}</p>` : ""}
+        ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
+        <div class="article-content">${article.content}</div>
       `;
     }
 
-    displayArticle();
+    window.onload = displayArticle;
   </script>
 </body>
 </html>
