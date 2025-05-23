@@ -131,6 +131,7 @@ header {
 .article-preview {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   margin: 0 1rem;
   background-color: #fff;
   border: 1px solid #ddd;
@@ -139,7 +140,9 @@ header {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   width: 250px;
+  height: 320px; /* Fixed height */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
 }
 
 .article-preview:hover {
@@ -168,6 +171,12 @@ header {
   font-weight: bold;
   color: #333;
   margin-bottom: 1rem;
+  max-height: 3em; /* ~2 lines of text */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 /* Form styles */
