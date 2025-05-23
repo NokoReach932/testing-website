@@ -51,6 +51,13 @@ let filteredArticles      = [];
 let currentCategoryFilter = null;
 
 /* ------------------------------------------------------------------
+   Read admin state from localStorage on load  // ADDED
+------------------------------------------------------------------ */
+if (localStorage.getItem("isAdmin") === "true") {
+  isAdmin = true;
+}
+
+/* ------------------------------------------------------------------
    Helpers: fetches
 ------------------------------------------------------------------ */
 async function fetchArticles() {
@@ -297,6 +304,7 @@ if (viewTab && writeTab && viewSection && writeSection) {
       const p = prompt("Enter admin password:");
       if (u === adminUsername && p === adminPassword) {
         isAdmin = true;
+        localStorage.setItem("isAdmin", "true");  // ADDED: persist login state
         alert("Welcome, Admin!");
       } else {
         alert("Incorrect credentials.");
