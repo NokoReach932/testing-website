@@ -4,57 +4,46 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Article Details</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 2rem;
-      max-width: 700px;
-      line-height: 1.6;
-    }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 0.3rem;
-    }
-    .category {
-      font-style: italic;
-      color: #666;
-      margin-bottom: 1rem;
-    }
-    .date {
-      font-size: 0.9rem;
-      color: #999;
-      margin-bottom: 1.5rem;
-    }
-    img {
-      max-width: 100%;
-      height: auto;
-      margin-bottom: 1.5rem;
-      border-radius: 5px;
-    }
-    .content {
-      white-space: pre-wrap; /* preserve line breaks */
-      margin-bottom: 2rem;
-    }
-    a.back-link {
-      display: inline-block;
-      margin-top: 2rem;
-      text-decoration: none;
-      color: #007bff;
-      font-weight: bold;
-    }
-    a.back-link:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
-  <a href="index.html" class="back-link">&larr; ត្រលប់ទៅ ផ្ទាំងព័ត៌មានចម្រុះ</a>
-  <div id="articleContainer">
-    <p>កំពុងទាញយកព័ត៌មាន...</p>
+  <header>
+    <img src="logo.png" data-animated="logo.gif" data-static="logo.png" alt="Komnottra Logo" class="logo">
+    <div id="menuToggle" class="menu-toggle">&#9776;</div>
+  </header>
+
+  <div id="overlay" class="overlay"></div>
+
+  <nav id="sideMenu" class="side-menu">
+    <a href="index.html"><button class="active">Home</button></a>
+  </nav>
+
+  <div class="container">
+    <section class="section active">
+      <a href="index.html" class="back-link">&larr; ត្រលប់ទៅ ផ្ទាំងព័ត៌មានចម្រុះ</a>
+      <div id="articleContainer" class="article-detail">
+        <p>កំពុងទាញយកព័ត៌មាន...</p>
+      </div>
+    </section>
   </div>
 
   <script>
     const API_BASE = "https://komnottra-backend.onrender.com";
+
+    const menuToggle = document.getElementById('menuToggle');
+    const sideMenu = document.getElementById('sideMenu');
+    const overlay = document.getElementById('overlay');
+
+    menuToggle.addEventListener('click', () => {
+      sideMenu.classList.toggle('open');
+      overlay.classList.toggle('active');
+    });
+
+    overlay.addEventListener('click', () => {
+      sideMenu.classList.remove('open');
+      overlay.classList.remove('active');
+    });
 
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
@@ -87,8 +76,6 @@
         container.innerHTML = "<p>មិនមានអត្តសញ្ញាណព័ត៌មាន!</p>";
         return;
       }
-
-      container.innerHTML = "<p>កំពុងទាញយកព័ត៌មាន...</p>";
 
       const article = await fetchArticleById(articleId);
 
