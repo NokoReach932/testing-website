@@ -6,8 +6,7 @@ const writeSection = document.getElementById("writeSection");
 const viewSection = document.getElementById("viewSection");
 const form = document.getElementById("articleForm");
 const articlesList = document.getElementById("articlesList");
-// Removed fullArticle as it is no longer needed:
-// const fullArticle = document.getElementById("fullArticle");
+// const fullArticle = document.getElementById("fullArticle"); // Removed as no longer needed
 const adminArticles = document.getElementById("adminArticles");
 const categoryNav = document.getElementById("categoryNav");
 
@@ -17,14 +16,13 @@ const newCategoryInput = document.getElementById("newCategory");
 const deleteCategorySelect = document.getElementById("deleteCategorySelect");
 const categorySelect = document.getElementById("categorySelect");
 const logo = document.querySelector(".logo");
-const logoImg = document.querySelector(".logo");
 
-logoImg.addEventListener("mouseenter", () => {
-  logoImg.src = logoImg.getAttribute("data-animated");
+logo.addEventListener("mouseenter", () => {
+  logo.src = logo.getAttribute("data-animated");
 });
 
-logoImg.addEventListener("mouseleave", () => {
-  logoImg.src = logoImg.getAttribute("data-static");
+logo.addEventListener("mouseleave", () => {
+  logo.src = logo.getAttribute("data-static");
 });
 
 let isAdmin = false;
@@ -107,7 +105,7 @@ function displayCategoryNav(categories) {
   categoryNav.innerHTML = "";
 
   const allBtn = document.createElement("button");
-  allBtn.textContent = "ព័ត៌មានចម្រុះ";
+  allBtn.textContent = "ព័ត៌មានចម្រុះ"; // All news (localized)
   allBtn.classList.add("category-btn");
   if (!currentCategoryFilter) allBtn.classList.add("active");
   allBtn.addEventListener("click", () => {
@@ -134,7 +132,10 @@ function displayCategoryNav(categories) {
 function updateCategoryNavActive() {
   const buttons = categoryNav.querySelectorAll("button");
   buttons.forEach(btn => {
-    if (btn.textContent === currentCategoryFilter || (btn.textContent === "Show All" && !currentCategoryFilter)) {
+    if (
+      btn.textContent === currentCategoryFilter ||
+      (btn.textContent === "ព័ត៌មានចម្រុះ" && !currentCategoryFilter)
+    ) {
       btn.classList.add("active");
     } else {
       btn.classList.remove("active");
@@ -199,8 +200,6 @@ deleteCategoryBtn.addEventListener("click", async () => {
 
 async function displayArticles() {
   articlesList.innerHTML = "";
-  // Removed fullArticle clearing as it no longer exists:
-  // fullArticle.innerHTML = "";
 
   await fetchArticles();
 
@@ -216,15 +215,11 @@ async function displayArticles() {
   filteredArticles.forEach((article) => {
     const div = document.createElement("div");
     div.classList.add("article-preview");
-    // Instead of clicking to show full article inline,
-    // redirect to article page with id query param:
     div.innerHTML = `
       ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
       <div class="article-title">${article.title}</div>
       ${article.category ? `<div class="article-category">${article.category}</div>` : ""}
     `;
-
-    // Replace click handler:
     div.addEventListener("click", () => {
       window.location.href = `article.html?id=${article.id}`;
     });
@@ -233,9 +228,6 @@ async function displayArticles() {
 
   updateCategoryNavActive();
 }
-
-// Remove this function as it's no longer used and fullArticle div is removed
-// window.viewFullArticle = function (articleId) { ... }
 
 function displayAdminArticles() {
   adminArticles.innerHTML = "";
@@ -306,6 +298,7 @@ writeTab.addEventListener("click", async () => {
   writeSection.classList.add("active");
   viewSection.classList.remove("active");
   history.pushState({ section: "write" }, "Write Article", "#write");
+  currentCategoryFilter = null; // reset filter on write tab as well
   await fetchArticles();
   displayAdminArticles();
 });
