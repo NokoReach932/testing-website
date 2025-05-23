@@ -17,16 +17,23 @@
 
   <nav id="sideMenu" class="side-menu">
     <a href="index.html"><button class="active">Home</button></a>
+    <!-- Add more buttons if you have other pages -->
+    <!-- <a href="admin.html"><button>Admin</button></a> -->
   </nav>
 
   <div class="container">
     <section class="section active">
       <a href="index.html" class="back-link">&larr; ត្រលប់ទៅ ផ្ទាំងព័ត៌មានចម្រុះ</a>
-      <div id="articleContainer" class="article-detail">
+      <div id="articleContainer" class="article-full">
         <p>កំពុងទាញយកព័ត៌មាន...</p>
       </div>
     </section>
   </div>
+
+  <!-- Optional: Footer for consistency -->
+  <footer style="text-align:center; padding:1rem; background:#f5f5f5;">
+    <p>&copy; 2025 Komnottra</p>
+  </footer>
 
   <script>
     const API_BASE = "https://komnottra-backend.onrender.com";
@@ -44,6 +51,17 @@
       sideMenu.classList.remove('open');
       overlay.classList.remove('active');
     });
+
+    // Logo hover animation
+    const logo = document.querySelector('.logo');
+    if (logo && logo.dataset.animated && logo.dataset.static) {
+      logo.addEventListener('mouseover', () => {
+        logo.src = logo.dataset.animated;
+      });
+      logo.addEventListener('mouseout', () => {
+        logo.src = logo.dataset.static;
+      });
+    }
 
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
