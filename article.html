@@ -1,64 +1,99 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="km">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Article</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Article Details</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
   <header>
-    <div class="header-container">
-      <img src="logo.png" alt="Logo" class="logo" onclick="goHome()" />
-    </div>
+    <img src="logo.png" data-animated="logo.gif" data-static="logo.png" alt="Komnottra Logo" class="logo">
+    <div id="menuToggle" class="menu-toggle">&#9776;</div>
   </header>
 
-  <div class="overlay" id="overlay"></div>
+  <div id="overlay" class="overlay"></div>
 
-  <nav class="side-menu" id="sideMenu">
-    <button onclick="goHome()">Home</button>
-    <button onclick="goBack()">Back</button>
+  <nav id="sideMenu" class="side-menu">
+    <a href="index.html"><button class="active">Home</button></a>
   </nav>
 
   <div class="container">
-    <section class="section active article-full" id="articleDisplay">
-      <h1 class="article-title" id="articleTitle">Loading title...</h1>
-      <div class="article-content" id="articleContent">Loading content...</div>
+    <section class="section active">
+      <a href="index.html" class="back-link">&larr; ត្រលប់ទៅ ផ្ទាំងព័ត៌មានចម្រុះ</a>
+      <div id="articleContainer" class="article-detail">
+        <p>កំពុងទាញយកព័ត៌មាន...</p>
+      </div>
     </section>
   </div>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const articleId = urlParams.get('id');
+    const API_BASE = "https://komnottra-backend.onrender.com";
 
-    async function loadArticle() {
+    const menuToggle = document.getElementById('menuToggle');
+    const sideMenu = document.getElementById('sideMenu');
+    const overlay = document.getElementById('overlay');
+
+    menuToggle.addEventListener('click', () => {
+      sideMenu.classList.toggle('open');
+      overlay.classList.toggle('active');
+    });
+
+    overlay.addEventListener('click', () => {
+      sideMenu.classList.remove('open');
+      overlay.classList.remove('active');
+    });
+
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const options = { hour: "numeric", minute: "numeric", hour12: true };
+      const datePart = `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
+      const timePart = date.toLocaleTimeString([], options);
+      return `${datePart} ${timePart}`;
+    }
+
+    async function fetchArticleById(id) {
       try {
-        const response = await fetch('https://komnottra-backend.onrender.com/api/articles');
-        const articles = await response.json();
-        const article = articles.find(item => item.id === articleId);
-
-        if (!article) {
-          document.getElementById('articleContent').innerHTML = '<p>Article not found.</p>';
-          return;
-        }
-
-        document.getElementById('articleTitle').textContent = article.title;
-        document.getElementById('articleContent').innerHTML = article.content;
-      } catch (error) {
-        document.getElementById('articleContent').innerHTML = '<p>Failed to load article.</p>';
-        console.error('Error loading article:', error);
+        const res = await fetch(`${API_BASE}/articles/${id}`);
+        if (!res.ok) throw new Error("Article not found");
+        return await res.json();
+      } catch (err) {
+        return null;
       }
     }
 
-    function goHome() {
-      window.location.href = 'index.html';
+    async function displayArticle() {
+      const articleId = getQueryParam("id");
+      const container = document.getElementById("articleContainer");
+
+      if (!articleId) {
+        container.innerHTML = "<p>មិនមានអត្តសញ្ញាណព័ត៌មាន!</p>";
+        return;
+      }
+
+      const article = await fetchArticleById(articleId);
+
+      if (!article) {
+        container.innerHTML = "<p>ព័ត៌មានដែលអ្នកស្វែងរកមិនមានទេ ឬបានលុបចោល។</p>";
+        return;
+      }
+
+      container.innerHTML = `
+        <h1>${article.title}</h1>
+        ${article.category ? `<div class="category">ប្រភេទ៖ ${article.category}</div>` : ""}
+        <div class="date">បានផ្សព្វផ្សាយ: ${formatDate(article.createdAt)}</div>
+        ${article.image ? `<img src="${article.image}" alt="Article Image" />` : ""}
+        <div class="content">${article.content}</div>
+      `;
     }
 
-    function goBack() {
-      window.history.back();
-    }
-
-    loadArticle();
+    displayArticle();
   </script>
 </body>
 </html>
