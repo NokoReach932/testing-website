@@ -171,6 +171,7 @@ header {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #060606;
 }
 
 /* Article content styles */
