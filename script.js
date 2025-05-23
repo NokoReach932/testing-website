@@ -1,51 +1,63 @@
+/* ------------------------------------------------------------------
+   Global configuration
+------------------------------------------------------------------ */
 if (typeof API_BASE === "undefined") {
   API_BASE = "https://komnottra-backend.onrender.com"; // Fallback backend URL
 }
 
-const writeTab = document.getElementById("writeTab");
-const viewTab = document.getElementById("viewTab");
-const writeSection = document.getElementById("writeSection");
-const viewSection = document.getElementById("viewSection");
-const form = document.getElementById("articleForm");
-const articlesList = document.getElementById("articlesList");
-const adminArticles = document.getElementById("adminArticles");
-const categoryNav = document.getElementById("categoryNav");
+/* ------------------------------------------------------------------
+   Element selectors
+------------------------------------------------------------------ */
+const writeTab            = document.getElementById("writeTab");
+const viewTab             = document.getElementById("viewTab");     // “Home” in side-menu
+const writeSection        = document.getElementById("writeSection");
+const viewSection         = document.getElementById("viewSection");
+const form                = document.getElementById("articleForm");
+const articlesList        = document.getElementById("articlesList");
+const adminArticles       = document.getElementById("adminArticles");
+const categoryNav         = document.getElementById("categoryNav");
 
-const createCategoryBtn = document.getElementById("createCategoryBtn");
-const deleteCategoryBtn = document.getElementById("deleteCategoryBtn");
-const newCategoryInput = document.getElementById("newCategory");
-const deleteCategorySelect = document.getElementById("deleteCategorySelect");
-const categorySelect = document.getElementById("categorySelect");
-const logo = document.querySelector(".logo");
+const createCategoryBtn   = document.getElementById("createCategoryBtn");
+const deleteCategoryBtn   = document.getElementById("deleteCategoryBtn");
+const newCategoryInput    = document.getElementById("newCategory");
+const deleteCategorySelect= document.getElementById("deleteCategorySelect");
+const categorySelect      = document.getElementById("categorySelect");
+const logo                = document.querySelector(".logo");
 
+/* ------------------------------------------------------------------
+   Logo hover / click
+------------------------------------------------------------------ */
 if (logo) {
   logo.addEventListener("mouseenter", () => {
     logo.src = logo.getAttribute("data-animated");
   });
-
   logo.addEventListener("mouseleave", () => {
     logo.src = logo.getAttribute("data-static");
   });
-
-  logo.addEventListener("click", async () => {
-    if (viewTab) viewTab.click();
+  logo.addEventListener("click", () => {
+    if (viewTab) viewTab.click();     // same behaviour as “Home”
   });
 }
 
-let isAdmin = false;
-const adminUsername = "admin";
-const adminPassword = "123";
-let articleData = [];
-let filteredArticles = [];
+/* ------------------------------------------------------------------
+   State
+------------------------------------------------------------------ */
+let isAdmin               = false;
+const adminUsername       = "admin";
+const adminPassword       = "123";
+
+let articleData           = [];
+let filteredArticles      = [];
 let currentCategoryFilter = null;
 
+/* ------------------------------------------------------------------
+   Helpers: fetches
+------------------------------------------------------------------ */
 async function fetchArticles() {
   try {
     const res = await fetch(`${API_BASE}/articles`);
     articleData = await res.json();
-    articleData.forEach((article, idx) => {
-      if (!article.id) article.id = idx + 1;
-    });
+    articleData.forEach((a, i) => { if (!a.id) a.id = i + 1; });
     return articleData;
   } catch (err) {
     console.error("Failed to fetch articles", err);
@@ -68,9 +80,7 @@ async function saveArticleToBackend(article) {
 
 async function deleteArticleFromBackend(id) {
   try {
-    const res = await fetch(`${API_BASE}/articles/${id}`, {
-      method: "DELETE",
-    });
+    const res = await fetch(`${API_BASE}/articles/${id}`, { method: "DELETE" });
     return await res.json();
   } catch (err) {
     console.error("Failed to delete article", err);
@@ -87,28 +97,23 @@ async function fetchCategories() {
   }
 }
 
+/* ------------------------------------------------------------------
+   Category helpers (nav + dropdowns)
+------------------------------------------------------------------ */
 async function refreshCategoryDropdowns() {
   const categories = await fetchCategories();
 
-  if (categorySelect) {
-    categorySelect.innerHTML = `<option value="" disabled selected>Select Category (Optional)</option>`;
-  }
-  if (deleteCategorySelect) {
-    deleteCategorySelect.innerHTML = `<option disabled selected>Select Category to Delete</option>`;
-  }
+  if (categorySelect)       categorySelect.innerHTML       = `<option value="" disabled selected>Select Category (Optional)</option>`;
+  if (deleteCategorySelect) deleteCategorySelect.innerHTML = `<option disabled selected>Select Category to Delete</option>`;
 
   categories.forEach(cat => {
     if (categorySelect) {
-      const option1 = document.createElement("option");
-      option1.value = cat;
-      option1.textContent = cat;
-      categorySelect.appendChild(option1);
+      const o1 = new Option(cat, cat);
+      categorySelect.appendChild(o1);
     }
     if (deleteCategorySelect) {
-      const option2 = document.createElement("option");
-      option2.value = cat;
-      option2.textContent = cat;
-      deleteCategorySelect.appendChild(option2);
+      const o2 = new Option(cat, cat);
+      deleteCategorySelect.appendChild(o2);
     }
   });
 
@@ -117,18 +122,13 @@ async function refreshCategoryDropdowns() {
 
 function displayCategoryNav(categories) {
   if (!categoryNav) return;
-
   categoryNav.innerHTML = "";
 
   const allBtn = document.createElement("button");
   allBtn.textContent = "ព័ត៌មានចម្រុះ";
   allBtn.classList.add("category-btn");
   if (!currentCategoryFilter) allBtn.classList.add("active");
-  allBtn.addEventListener("click", () => {
-    currentCategoryFilter = null;
-    displayArticles();
-    updateCategoryNavActive();
-  });
+  allBtn.onclick = () => { currentCategoryFilter = null; displayArticles(); updateCategoryNavActive(); };
   categoryNav.appendChild(allBtn);
 
   categories.forEach(cat => {
@@ -136,91 +136,76 @@ function displayCategoryNav(categories) {
     btn.textContent = cat;
     btn.classList.add("category-btn");
     if (cat === currentCategoryFilter) btn.classList.add("active");
-    btn.addEventListener("click", () => {
-      currentCategoryFilter = cat;
-      displayArticles();
-      updateCategoryNavActive();
-    });
+    btn.onclick = () => { currentCategoryFilter = cat; displayArticles(); updateCategoryNavActive(); };
     categoryNav.appendChild(btn);
   });
 }
 
 function updateCategoryNavActive() {
   if (!categoryNav) return;
-  const buttons = categoryNav.querySelectorAll("button");
-  buttons.forEach(btn => {
-    if (
-      btn.textContent === currentCategoryFilter ||
-      (btn.textContent === "ព័ត៌មានចម្រុះ" && !currentCategoryFilter)
-    ) {
-      btn.classList.add("active");
-    } else {
-      btn.classList.remove("active");
-    }
+  categoryNav.querySelectorAll("button").forEach(btn => {
+    const active = (btn.textContent === currentCategoryFilter) ||
+                   (btn.textContent === "ព័ត៌មានចម្រុះ" && !currentCategoryFilter);
+    btn.classList.toggle("active", active);
   });
 }
 
+/* ------------------------------------------------------------------
+   Admin category create / delete (with null-checks)
+------------------------------------------------------------------ */
 if (createCategoryBtn) {
-  createCategoryBtn.addEventListener("click", async () => {
+  createCategoryBtn.onclick = async () => {
     if (!newCategoryInput) return;
-    const newCategory = newCategoryInput.value.trim();
-    if (!newCategory) {
-      alert("Please enter a category name.");
-      return;
-    }
+    const newCat = newCategoryInput.value.trim();
+    if (!newCat) { alert("Please enter a category name."); return; }
 
     try {
       const res = await fetch(`${API_BASE}/categories`, {
-        method: "POST",
+        method : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category: newCategory }),
+        body   : JSON.stringify({ category: newCat }),
       });
-
       if (!res.ok) {
-        const data = await res.json();
-        alert(data.message || "Failed to create category");
+        const d = await res.json();
+        alert(d.message || "Failed to create category");
       } else {
         alert("Category created!");
         newCategoryInput.value = "";
         await refreshCategoryDropdowns();
       }
     } catch (err) {
-      console.error("Error creating category", err);
+      console.error(err);
       alert("Error creating category");
     }
-  });
+  };
 }
 
 if (deleteCategoryBtn) {
-  deleteCategoryBtn.addEventListener("click", async () => {
+  deleteCategoryBtn.onclick = async () => {
     if (!deleteCategorySelect) return;
     const selected = deleteCategorySelect.value;
-    if (!selected) {
-      alert("Please select a category to delete.");
-      return;
-    }
-
-    if (!confirm(`Delete category "${selected}"? This cannot be undone.`)) return;
+    if (!selected) { alert("Please select a category."); return; }
+    if (!confirm(`Delete category "${selected}"?`)) return;
 
     try {
-      const res = await fetch(`${API_BASE}/categories/${encodeURIComponent(selected)}`, {
-        method: "DELETE",
-      });
-
+      const res = await fetch(`${API_BASE}/categories/${encodeURIComponent(selected)}`, { method: "DELETE" });
       if (!res.ok) {
-        const data = await res.json();
-        alert(data.message || "Failed to delete category");
+        const d = await res.json();
+        alert(d.message || "Failed to delete");
       } else {
         alert("Category deleted.");
         await refreshCategoryDropdowns();
       }
     } catch (err) {
-      console.error("Error deleting category", err);
+      console.error(err);
       alert("Error deleting category");
     }
-  });
+  };
 }
 
+/* ------------------------------------------------------------------
+   Article list / admin list
+------------------------------------------------------------------ */
 async function displayArticles() {
   if (!articlesList) return;
   articlesList.innerHTML = "";
@@ -231,22 +216,20 @@ async function displayArticles() {
     ? articleData.filter(a => a.category === currentCategoryFilter)
     : [...articleData];
 
-  if (filteredArticles.length === 0) {
+  if (!filteredArticles.length) {
     articlesList.innerHTML = "<p>No articles available.</p>";
     return;
   }
 
-  filteredArticles.forEach((article) => {
+  filteredArticles.forEach(article => {
     const div = document.createElement("div");
-    div.classList.add("article-preview");
+    div.className = "article-preview";
     div.innerHTML = `
       ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
       <div class="article-title">${article.title}</div>
       ${article.category ? `<div class="article-category">${article.category}</div>` : ""}
     `;
-    div.addEventListener("click", () => {
-      window.location.href = `article.html?id=${article.id}`;
-    });
+    div.onclick = () => (window.location.href = `article.html?id=${article.id}`);
     articlesList.appendChild(div);
   });
 
@@ -256,47 +239,50 @@ async function displayArticles() {
 function displayAdminArticles() {
   if (!adminArticles) return;
   adminArticles.innerHTML = "";
-  articleData.forEach((article) => {
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <hr>
-      <strong>${article.title}</strong>
-      <button class="delete-btn" onclick="deleteArticle(${article.id})">Delete</button>
-    `;
-    adminArticles.appendChild(div);
+  articleData.forEach(a => {
+    const d = document.createElement("div");
+    d.innerHTML = `<hr><strong>${a.title}</strong>
+                   <button class="delete-btn" onclick="deleteArticle(${a.id})">Delete</button>`;
+    adminArticles.appendChild(d);
   });
 }
 
-window.deleteArticle = async function (id) {
+window.deleteArticle = async id => {
   if (!isAdmin) return;
-  if (!confirm("Are you sure you want to delete this article?")) return;
-
+  if (!confirm("Are you sure?")) return;
   await deleteArticleFromBackend(id);
-  alert("Article deleted successfully.");
+  alert("Deleted.");
   await fetchArticles();
   await displayArticles();
   displayAdminArticles();
 };
 
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  const options = { hour: "numeric", minute: "numeric", hour12: true };
-  const datePart = `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
-  const timePart = date.toLocaleTimeString([], options);
-  return `${datePart} ${timePart}`;
-}
-
+/* ------------------------------------------------------------------
+   Helper utilities
+------------------------------------------------------------------ */
 function convertImageToBase64(file) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
   });
 }
 
+/* ------------------------------------------------------------------
+   Tab / menu logic
+------------------------------------------------------------------ */
+const isIndexPage = /index\.html$/.test(location.pathname) || location.pathname === "/" || location.pathname === "";
+
 if (viewTab && writeTab && viewSection && writeSection) {
+  /* Home (viewTab) — new logic: redirect to index if not already there */
   viewTab.addEventListener("click", async () => {
+    if (!isIndexPage) {
+      // We are on article.html (or any other page) → go home.
+      location.href = "index.html";
+      return;
+    }
+    // Already on index.html → just switch sections
     viewTab.classList.add("active");
     writeTab.classList.remove("active");
     viewSection.classList.add("active");
@@ -306,11 +292,17 @@ if (viewTab && writeTab && viewSection && writeSection) {
     await displayArticles();
   });
 
+  /* Admin Write */
   writeTab.addEventListener("click", async () => {
+    if (!isIndexPage) {
+      // On article.html but admin wants write → still redirect to index first
+      location.href = "index.html#write";
+      return;
+    }
     if (!isAdmin) {
-      const inputUser = prompt("Enter admin username:");
-      const inputPass = prompt("Enter admin password:");
-      if (inputUser === adminUsername && inputPass === adminPassword) {
+      const u = prompt("Enter admin username:");
+      const p = prompt("Enter admin password:");
+      if (u === adminUsername && p === adminPassword) {
         isAdmin = true;
         alert("Welcome, Admin!");
       } else {
@@ -318,7 +310,6 @@ if (viewTab && writeTab && viewSection && writeSection) {
         return;
       }
     }
-
     writeTab.classList.add("active");
     viewTab.classList.remove("active");
     writeSection.classList.add("active");
@@ -330,36 +321,26 @@ if (viewTab && writeTab && viewSection && writeSection) {
   });
 }
 
+/* ------------------------------------------------------------------
+   Article submission
+------------------------------------------------------------------ */
 if (form) {
-  form.addEventListener("submit", async function (e) {
+  form.addEventListener("submit", async e => {
     e.preventDefault();
-    const title = document.getElementById("title").value;
-    const content = document.getElementById("content").value;
-    const imageInput = document.getElementById("imageUpload");
-    const imageFile = imageInput.files[0];
+    const title   = document.getElementById("title").value.trim();
+    const content = document.getElementById("content").value.trim();
+    const file    = document.getElementById("imageUpload").files[0];
+    if (!title || !content) { alert("Title and content are required."); return; }
 
-    let imageDataURL = "";
-    if (imageFile) {
-      imageDataURL = await convertImageToBase64(imageFile);
-    }
-
+    const image = file ? await convertImageToBase64(file) : "";
     const category = categorySelect ? categorySelect.value : "";
 
-    if (!title || !content) {
-      alert("Title and content are required.");
-      return;
-    }
-
     const newArticle = {
-      title,
-      content,
-      image: imageDataURL,
-      category,
+      title, content, image, category,
       createdAt: new Date().toISOString(),
     };
 
     await saveArticleToBackend(newArticle);
-
     alert("Article saved!");
     form.reset();
     await fetchArticles();
@@ -368,7 +349,10 @@ if (form) {
   });
 }
 
-window.onload = async function () {
+/* ------------------------------------------------------------------
+   On load
+------------------------------------------------------------------ */
+window.onload = async () => {
   await refreshCategoryDropdowns();
-  if (viewTab) viewTab.click();
+  if (isIndexPage && viewTab) viewTab.click();
 };
