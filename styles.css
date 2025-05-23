@@ -10,7 +10,7 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: #000;
   min-height: 100vh;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-x: hidden;
 }
 
 /* Header */
@@ -106,7 +106,7 @@ header {
   display: flex;
   justify-content: space-between;
   padding: 2rem;
-  overflow-x: hidden; /* Prevent horizontal scroll caused by children */
+  overflow-x: hidden;
 }
 
 /* Section visibility */
@@ -162,13 +162,12 @@ header {
   box-sizing: border-box;
 }
 
-/* Updated article preview title: clamp to 2 lines with ellipsis */
 .article-preview .article-title {
   font-size: 1.5rem;
   font-weight: bold;
   margin: 0 0 0.5rem 0;
   display: -webkit-box;
-  -webkit-line-clamp: 2;      /* limit to 2 lines */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -184,7 +183,6 @@ header {
   box-sizing: border-box;
 }
 
-/* Article title for full article (unchanged) */
 .article-title {
   font-size: 2rem;
   margin: 0;
@@ -224,7 +222,6 @@ button:hover {
   background-color: #4d76b2;
 }
 
-/* Delete button styles */
 .delete-btn {
   padding: 0.5rem 1rem;
   background: #ff0000;
@@ -238,13 +235,11 @@ button:hover {
   background: #d10000;
 }
 
-/* Admin write section spacing */
 #writeSection > * {
   color: white;
   margin-bottom: 1.5rem;
 }
 
-/* Category Management Section Spacing */
 #categoryPanel > * {
   margin-bottom: 1.5rem;
 }
@@ -257,7 +252,6 @@ button:hover {
   margin-bottom: 1.5rem;
 }
 
-/* Responsive styles */
 @media (max-width: 900px) {
   #articlesList {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -292,7 +286,6 @@ button:hover {
   }
 }
 
-/* Category Navigation Button Style */
 .category-nav {
   display: flex;
   overflow-x: auto;
@@ -335,7 +328,6 @@ button:hover {
   font-weight: bold;
 }
 
-/* Full article image size fix */
 .article-full img,
 .article-container img,
 #articleContainer img {
@@ -348,7 +340,6 @@ button:hover {
   box-sizing: border-box;
 }
 
-/* Article Format Adjustment */
 .article-container {
   display: flex;
   flex-direction: column;
@@ -373,9 +364,11 @@ button:hover {
 .article-content {
   font-size: 1rem;
   color: white;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  text-align: justify;
 }
 
-/* Mobile responsive tweaks for article page */
 @media (max-width: 600px) {
   /* your existing or additional styles for mobile article page */
 }
