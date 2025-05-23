@@ -123,11 +123,11 @@ header {
 /* Article preview container as 3-column grid */
 #articlesList {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
-  gap: 1.5rem; /* spacing between previews */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
   padding: 1rem 0;
-  overflow-x: visible; /* no horizontal scroll */
-  justify-items: center; /* center items inside grid cells */
+  overflow-x: visible;
+  justify-items: center;
 }
 
 /* Individual article preview */
@@ -141,8 +141,8 @@ header {
   padding: 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  width: 100%; /* full width of the grid cell */
-  max-width: 320px; /* optional max width */
+  width: 100%;
+  max-width: 320px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   overflow: hidden;
 }
@@ -154,11 +154,11 @@ header {
 
 .article-preview img {
   height: fit-content;
-  max-height: 300px; /* Optional limit on height */
+  max-height: 300px;
   border-radius: 12px;
   margin-bottom: 1rem;
   display: block;
-  box-sizing: border-box; /* added */
+  box-sizing: border-box;
 }
 
 /* Article content styles */
@@ -167,7 +167,7 @@ header {
   height: auto;
   display: block;
   margin: 1rem 0;
-  box-sizing: border-box; /* added */
+  box-sizing: border-box;
 }
 
 /* Article title */
@@ -176,7 +176,7 @@ header {
   font-weight: bold;
   color: #333;
   margin-bottom: 1rem;
-  max-height: 3em; /* ~2 lines of text */
+  max-height: 3em;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -248,18 +248,15 @@ button:hover {
   margin-bottom: 1.5rem;
 }
 
-/* ------------------------- */
-/*     Responsive styles     */
-/* ------------------------- */
 @media (max-width: 900px) {
   #articlesList {
-    grid-template-columns: repeat(2, 1fr); /* 2 columns */
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 600px) {
   #articlesList {
-    grid-template-columns: 1fr; /* 1 column */
+    grid-template-columns: 1fr;
   }
 }
 
@@ -267,15 +264,14 @@ button:hover {
   .container {
     flex-direction: column;
     padding: 1rem;
-    overflow-x: hidden; /* ensure no horizontal scroll */
+    overflow-x: hidden;
   }
 
   .article-preview {
-    max-width: 100%; /* allow full width */
+    max-width: 100%;
     margin: 0 0 1rem 0;
   }
 
-  /* Side menu adjustments */
   .side-menu {
     width: 100%;
     left: -100%;
@@ -286,9 +282,6 @@ button:hover {
   }
 }
 
-/* -------------------------------- */
-/* Category Navigation Button Style */
-/* -------------------------------- */
 .category-nav {
   display: flex;
   flex-wrap: wrap;
@@ -320,20 +313,18 @@ button:hover {
 /* ============================== */
 /* Fix for full article image size */
 /* ============================== */
-/* Added #articleContainer img for article.html */
 .article-full img,
 .article-container img,
 #articleContainer img {
-  width: 100%;        /* Image fills the container width */
-  max-width: 100%;    /* Prevents stretching beyond container */
-  height: auto;       /* Maintains aspect ratio */
-  display: block;     /* Removes unwanted gaps */
-  margin: 1rem auto;  /* Centered with vertical margin */
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1rem auto;
   border-radius: 8px;
   box-sizing: border-box;
 }
 
-/* Containers remain flexible */
 .article-full,
 .article-container {
   max-width: 100%;
@@ -353,15 +344,14 @@ button:hover {
   }
 }
 
-/* --- Article page specific styles --- */
 .article-container {
   max-width: 800px;
   margin: 20px auto;
   padding: 15px;
   line-height: 1.6;
-  overflow-wrap: break-word; /* prevent overflow from long words */
-  box-sizing: border-box; /* include padding in width */
-  overflow-x: hidden; /* prevent horizontal scroll */
+  overflow-wrap: break-word;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .article-title {
@@ -381,7 +371,6 @@ button:hover {
   font-size: 1.1rem;
 }
 
-/* Mobile responsive tweaks for article page */
 @media (max-width: 600px) {
   .article-container {
     padding: 10px 1rem;
