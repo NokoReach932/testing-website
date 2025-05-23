@@ -6,7 +6,8 @@ const writeSection = document.getElementById("writeSection");
 const viewSection = document.getElementById("viewSection");
 const form = document.getElementById("articleForm");
 const articlesList = document.getElementById("articlesList");
-const fullArticle = document.getElementById("fullArticle");
+// Removed fullArticle as it is no longer needed:
+// const fullArticle = document.getElementById("fullArticle");
 const adminArticles = document.getElementById("adminArticles");
 const categoryNav = document.getElementById("categoryNav");
 
@@ -37,7 +38,6 @@ async function fetchArticles() {
   try {
     const res = await fetch(`${API_BASE}/articles`);
     articleData = await res.json();
-    // Assign IDs if missing (optional, if your backend doesn't provide IDs)
     articleData.forEach((article, idx) => {
       if (!article.id) article.id = idx + 1;
     });
@@ -199,7 +199,8 @@ deleteCategoryBtn.addEventListener("click", async () => {
 
 async function displayArticles() {
   articlesList.innerHTML = "";
-  fullArticle.innerHTML = "";
+  // Removed fullArticle clearing as it no longer exists:
+  // fullArticle.innerHTML = "";
 
   await fetchArticles();
 
@@ -215,49 +216,26 @@ async function displayArticles() {
   filteredArticles.forEach((article) => {
     const div = document.createElement("div");
     div.classList.add("article-preview");
-    div.style.cursor = "pointer";
+    // Instead of clicking to show full article inline,
+    // redirect to article page with id query param:
     div.innerHTML = `
       ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
       <div class="article-title">${article.title}</div>
       ${article.category ? `<div class="article-category">${article.category}</div>` : ""}
     `;
-    div.addEventListener("click", () => viewFullArticle(article.id));
+
+    // Replace click handler:
+    div.addEventListener("click", () => {
+      window.location.href = `article.html?id=${article.id}`;
+    });
     articlesList.appendChild(div);
   });
 
   updateCategoryNavActive();
 }
 
-window.viewFullArticle = function (articleId) {
-  const article = articleData.find(a => a.id === articleId);
-  if (!article) {
-    fullArticle.innerHTML = "<p>Article not found.</p>";
-    return;
-  }
-
-  fullArticle.innerHTML = `
-    <div class="article-full">
-      ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
-      <h2>${article.title}</h2>
-      <p><strong>Published:</strong> ${formatDate(article.date)}</p>
-      ${article.category ? `<p><strong>Category:</strong> ${article.category}</p>
-      ${article.content
-  .split('\n')
-  .filter(line => line.trim() !== "")
-  .map(line => `<p>${line.trim()}</p>`)
-  .join('')}` : ""}
-    </div>
-  `;
-
-  // Hide articles list to focus on full article
-  articlesList.innerHTML = "";
-
-  // Back button event listener
-  document.getElementById("backToListBtn").addEventListener("click", () => {
-    fullArticle.innerHTML = "";
-    displayArticles();
-  });
-};
+// Remove this function as it's no longer used and fullArticle div is removed
+// window.viewFullArticle = function (articleId) { ... }
 
 function displayAdminArticles() {
   adminArticles.innerHTML = "";
@@ -343,41 +321,36 @@ form.addEventListener("submit", async function (e) {
   const imageInput = document.getElementById("imageUpload");
   const imageFile = imageInput.files[0];
 
-  let imageDataURL = null;
+  let imageDataURL = "";
   if (imageFile) {
     imageDataURL = await convertImageToBase64(imageFile);
+  }
+
+  const category = categorySelect.value;
+
+  if (!title || !content) {
+    alert("Title and content are required.");
+    return;
   }
 
   const newArticle = {
     title,
     content,
-    date: new Date().toISOString(),
     image: imageDataURL,
-    category: categorySelect.value,
+    category,
+    createdAt: new Date().toISOString(),
   };
 
   await saveArticleToBackend(newArticle);
-  alert("Article published successfully!");
+
+  alert("Article saved!");
   form.reset();
+  await fetchArticles();
+  displayAdminArticles();
+  writeTab.click();
+});
+
+window.onload = async function () {
   await refreshCategoryDropdowns();
-  currentCategoryFilter = null;
-  await displayArticles();
   viewTab.click();
-});
-
-window.addEventListener("popstate", (event) => {
-  if (event.state?.section === "write") {
-    writeTab.click();
-  } else {
-    viewTab.click();
-  }
-});
-
-window.onload = async () => {
-  if (window.location.hash === "#write") {
-    writeTab.click();
-  } else {
-    viewTab.click();
-  }
-  await refreshCategoryDropdowns();
 };
