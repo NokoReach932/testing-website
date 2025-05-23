@@ -139,7 +139,6 @@ header {
   padding: 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  width: 320px;
   /* Remove fixed height to allow flexible height based on content */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   overflow: hidden;
