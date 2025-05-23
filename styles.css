@@ -106,6 +106,7 @@ header {
   display: flex;
   justify-content: space-between;
   padding: 2rem;
+  overflow-x: hidden; /* Prevent horizontal scroll caused by children */
 }
 
 /* Section visibility */
@@ -157,6 +158,7 @@ header {
   border-radius: 12px;
   margin-bottom: 1rem;
   display: block;
+  box-sizing: border-box; /* added */
 }
 
 /* Article content styles */
@@ -165,6 +167,7 @@ header {
   height: auto;
   display: block;
   margin: 1rem 0;
+  box-sizing: border-box; /* added */
 }
 
 /* Article title */
@@ -264,6 +267,7 @@ button:hover {
   .container {
     flex-direction: column;
     padding: 1rem;
+    overflow-x: hidden; /* ensure no horizontal scroll */
   }
 
   .article-preview {
@@ -322,6 +326,7 @@ button:hover {
   display: block;
   margin: 1rem auto;
   border-radius: 8px;
+  box-sizing: border-box; /* added */
 }
 
 .article-full {
@@ -332,6 +337,7 @@ button:hover {
   -moz-hyphens: auto;
   hyphens: auto;
   padding: 0 1rem;
+  box-sizing: border-box; /* added */
 }
 
 .article-full p {
@@ -354,6 +360,9 @@ button:hover {
   margin: 20px auto;
   padding: 15px;
   line-height: 1.6;
+  overflow-wrap: break-word; /* prevent overflow from long words */
+  box-sizing: border-box; /* include padding in width */
+  overflow-x: hidden; /* prevent horizontal scroll */
 }
 
 .article-container img {
@@ -362,6 +371,12 @@ button:hover {
   display: block;
   margin: 15px 0;
   border-radius: 8px;
+  box-sizing: border-box; /* include padding/border in size */
+}
+
+/* Prevent horizontal overflow on body and containers */
+body, .container, .article-container {
+  overflow-x: hidden;
 }
 
 .article-title {
@@ -384,8 +399,8 @@ button:hover {
 /* Mobile responsive tweaks for article page */
 @media (max-width: 600px) {
   .article-container {
-    padding: 10px;
-    margin: 10px 5px;
+    padding: 10px 1rem;
+    margin: 10px 10px;
   }
 
   .article-title {
