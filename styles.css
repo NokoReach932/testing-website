@@ -151,7 +151,6 @@ header {
 }
 
 .article-preview img {
-  width: fit-content;
   height: fit-content;
   max-height: 300px;      /* Optional limit on height */
   border-radius: 12px;
