@@ -17,13 +17,19 @@ const deleteCategorySelect = document.getElementById("deleteCategorySelect");
 const categorySelect = document.getElementById("categorySelect");
 const logo = document.querySelector(".logo");
 
-logo.addEventListener("mouseenter", () => {
-  logo.src = logo.getAttribute("data-animated");
-});
+if (logo) {
+  logo.addEventListener("mouseenter", () => {
+    logo.src = logo.getAttribute("data-animated");
+  });
 
-logo.addEventListener("mouseleave", () => {
-  logo.src = logo.getAttribute("data-static");
-});
+  logo.addEventListener("mouseleave", () => {
+    logo.src = logo.getAttribute("data-static");
+  });
+
+  logo.addEventListener("click", async () => {
+    if (viewTab) viewTab.click();
+  });
+}
 
 let isAdmin = false;
 const adminUsername = "admin";
@@ -83,25 +89,34 @@ async function fetchCategories() {
 async function refreshCategoryDropdowns() {
   const categories = await fetchCategories();
 
-  categorySelect.innerHTML = `<option value="" disabled selected>Select Category (Optional)</option>`;
-  deleteCategorySelect.innerHTML = `<option disabled selected>Select Category to Delete</option>`;
+  if (categorySelect) {
+    categorySelect.innerHTML = `<option value="" disabled selected>Select Category (Optional)</option>`;
+  }
+  if (deleteCategorySelect) {
+    deleteCategorySelect.innerHTML = `<option disabled selected>Select Category to Delete</option>`;
+  }
 
   categories.forEach(cat => {
-    const option1 = document.createElement("option");
-    option1.value = cat;
-    option1.textContent = cat;
-    categorySelect.appendChild(option1);
-
-    const option2 = document.createElement("option");
-    option2.value = cat;
-    option2.textContent = cat;
-    deleteCategorySelect.appendChild(option2);
+    if (categorySelect) {
+      const option1 = document.createElement("option");
+      option1.value = cat;
+      option1.textContent = cat;
+      categorySelect.appendChild(option1);
+    }
+    if (deleteCategorySelect) {
+      const option2 = document.createElement("option");
+      option2.value = cat;
+      option2.textContent = cat;
+      deleteCategorySelect.appendChild(option2);
+    }
   });
 
-  displayCategoryNav(categories);
+  if (categoryNav) displayCategoryNav(categories);
 }
 
 function displayCategoryNav(categories) {
+  if (!categoryNav) return;
+
   categoryNav.innerHTML = "";
 
   const allBtn = document.createElement("button");
@@ -130,6 +145,7 @@ function displayCategoryNav(categories) {
 }
 
 function updateCategoryNavActive() {
+  if (!categoryNav) return;
   const buttons = categoryNav.querySelectorAll("button");
   buttons.forEach(btn => {
     if (
@@ -143,62 +159,69 @@ function updateCategoryNavActive() {
   });
 }
 
-createCategoryBtn.addEventListener("click", async () => {
-  const newCategory = newCategoryInput.value.trim();
-  if (!newCategory) {
-    alert("Please enter a category name.");
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_BASE}/categories`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ category: newCategory }),
-    });
-
-    if (!res.ok) {
-      const data = await res.json();
-      alert(data.message || "Failed to create category");
-    } else {
-      alert("Category created!");
-      newCategoryInput.value = "";
-      await refreshCategoryDropdowns();
+if (createCategoryBtn) {
+  createCategoryBtn.addEventListener("click", async () => {
+    if (!newCategoryInput) return;
+    const newCategory = newCategoryInput.value.trim();
+    if (!newCategory) {
+      alert("Please enter a category name.");
+      return;
     }
-  } catch (err) {
-    console.error("Error creating category", err);
-    alert("Error creating category");
-  }
-});
 
-deleteCategoryBtn.addEventListener("click", async () => {
-  const selected = deleteCategorySelect.value;
-  if (!selected) {
-    alert("Please select a category to delete.");
-    return;
-  }
+    try {
+      const res = await fetch(`${API_BASE}/categories`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category: newCategory }),
+      });
 
-  if (!confirm(`Delete category "${selected}"? This cannot be undone.`)) return;
-
-  try {
-    const res = await fetch(`${API_BASE}/categories/${encodeURIComponent(selected)}`, {
-      method: "DELETE",
-    });
-
-    if (!res.ok) {
-      const data = await res.json();
-      alert(data.message || "Failed to delete category");
-    } else {
-      alert("Category deleted.");
-      await refreshCategoryDropdowns();
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.message || "Failed to create category");
+      } else {
+        alert("Category created!");
+        newCategoryInput.value = "";
+        await refreshCategoryDropdowns();
+      }
+    } catch (err) {
+      console.error("Error creating category", err);
+      alert("Error creating category");
     }
-  } catch (err) {
-    console.error("Error deleting category", err);
-    alert("Error deleting category");
-  }
-});
+  });
+}
+
+if (deleteCategoryBtn) {
+  deleteCategoryBtn.addEventListener("click", async () => {
+    if (!deleteCategorySelect) return;
+    const selected = deleteCategorySelect.value;
+    if (!selected) {
+      alert("Please select a category to delete.");
+      return;
+    }
+
+    if (!confirm(`Delete category "${selected}"? This cannot be undone.`)) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/categories/${encodeURIComponent(selected)}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.message || "Failed to delete category");
+      } else {
+        alert("Category deleted.");
+        await refreshCategoryDropdowns();
+      }
+    } catch (err) {
+      console.error("Error deleting category", err);
+      alert("Error deleting category");
+    }
+  });
+}
 
 async function displayArticles() {
+  if (!articlesList) return;
   articlesList.innerHTML = "";
 
   await fetchArticles();
@@ -230,6 +253,7 @@ async function displayArticles() {
 }
 
 function displayAdminArticles() {
+  if (!adminArticles) return;
   adminArticles.innerHTML = "";
   articleData.forEach((article) => {
     const div = document.createElement("div");
@@ -270,80 +294,80 @@ function convertImageToBase64(file) {
   });
 }
 
-viewTab.addEventListener("click", async () => {
-  viewTab.classList.add("active");
-  writeTab.classList.remove("active");
-  viewSection.classList.add("active");
-  writeSection.classList.remove("active");
-  history.pushState({ section: "view" }, "View Articles", "#view");
-  currentCategoryFilter = null;
-  await displayArticles();
-});
+if (viewTab && writeTab && viewSection && writeSection) {
+  viewTab.addEventListener("click", async () => {
+    viewTab.classList.add("active");
+    writeTab.classList.remove("active");
+    viewSection.classList.add("active");
+    writeSection.classList.remove("active");
+    history.pushState({ section: "view" }, "View Articles", "#view");
+    currentCategoryFilter = null;
+    await displayArticles();
+  });
 
-writeTab.addEventListener("click", async () => {
-  if (!isAdmin) {
-    const inputUser = prompt("Enter admin username:");
-    const inputPass = prompt("Enter admin password:");
-    if (inputUser === adminUsername && inputPass === adminPassword) {
-      isAdmin = true;
-      alert("Welcome, Admin!");
-    } else {
-      alert("Incorrect credentials.");
+  writeTab.addEventListener("click", async () => {
+    if (!isAdmin) {
+      const inputUser = prompt("Enter admin username:");
+      const inputPass = prompt("Enter admin password:");
+      if (inputUser === adminUsername && inputPass === adminPassword) {
+        isAdmin = true;
+        alert("Welcome, Admin!");
+      } else {
+        alert("Incorrect credentials.");
+        return;
+      }
+    }
+
+    writeTab.classList.add("active");
+    viewTab.classList.remove("active");
+    writeSection.classList.add("active");
+    viewSection.classList.remove("active");
+    history.pushState({ section: "write" }, "Write Article", "#write");
+    currentCategoryFilter = null; // reset filter on write tab as well
+    await fetchArticles();
+    displayAdminArticles();
+  });
+}
+
+if (form) {
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const title = document.getElementById("title").value;
+    const content = document.getElementById("content").value;
+    const imageInput = document.getElementById("imageUpload");
+    const imageFile = imageInput.files[0];
+
+    let imageDataURL = "";
+    if (imageFile) {
+      imageDataURL = await convertImageToBase64(imageFile);
+    }
+
+    const category = categorySelect ? categorySelect.value : "";
+
+    if (!title || !content) {
+      alert("Title and content are required.");
       return;
     }
-  }
 
-  writeTab.classList.add("active");
-  viewTab.classList.remove("active");
-  writeSection.classList.add("active");
-  viewSection.classList.remove("active");
-  history.pushState({ section: "write" }, "Write Article", "#write");
-  currentCategoryFilter = null; // reset filter on write tab as well
-  await fetchArticles();
-  displayAdminArticles();
-});
+    const newArticle = {
+      title,
+      content,
+      image: imageDataURL,
+      category,
+      createdAt: new Date().toISOString(),
+    };
 
-logo.addEventListener("click", async () => {
-  viewTab.click();
-});
+    await saveArticleToBackend(newArticle);
 
-form.addEventListener("submit", async function (e) {
-  e.preventDefault();
-  const title = document.getElementById("title").value;
-  const content = document.getElementById("content").value;
-  const imageInput = document.getElementById("imageUpload");
-  const imageFile = imageInput.files[0];
-
-  let imageDataURL = "";
-  if (imageFile) {
-    imageDataURL = await convertImageToBase64(imageFile);
-  }
-
-  const category = categorySelect.value;
-
-  if (!title || !content) {
-    alert("Title and content are required.");
-    return;
-  }
-
-  const newArticle = {
-    title,
-    content,
-    image: imageDataURL,
-    category,
-    createdAt: new Date().toISOString(),
-  };
-
-  await saveArticleToBackend(newArticle);
-
-  alert("Article saved!");
-  form.reset();
-  await fetchArticles();
-  displayAdminArticles();
-  writeTab.click();
-});
+    alert("Article saved!");
+    form.reset();
+    await fetchArticles();
+    displayAdminArticles();
+    if (writeTab) writeTab.click();
+  });
+}
 
 window.onload = async function () {
   await refreshCategoryDropdowns();
-  viewTab.click();
+  if (viewTab) viewTab.click();
 };
