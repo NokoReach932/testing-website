@@ -42,7 +42,8 @@ if (logo) {
 /* ------------------------------------------------------------------
    State
 ------------------------------------------------------------------ */
-let isAdmin               = false;
+// Restore isAdmin state from localStorage on page load
+let isAdmin = localStorage.getItem("isAdmin") === "true";
 const adminUsername       = "admin";
 const adminPassword       = "123";
 
@@ -297,6 +298,7 @@ if (viewTab && writeTab && viewSection && writeSection) {
       const p = prompt("Enter admin password:");
       if (u === adminUsername && p === adminPassword) {
         isAdmin = true;
+        localStorage.setItem("isAdmin", "true");   // Persist login state
         alert("Welcome, Admin!");
       } else {
         alert("Incorrect credentials.");
@@ -305,7 +307,8 @@ if (viewTab && writeTab && viewSection && writeSection) {
     }
 
     if (!isIndexPage) {
-      // After successful login, redirect to index page #write
+      // After successful login, persist state and redirect to index page #write
+      localStorage.setItem("isAdmin", "true");
       location.href = "index.html#write";
       return;
     }
@@ -355,6 +358,8 @@ if (form) {
 ------------------------------------------------------------------ */
 window.onload = async () => {
   await refreshCategoryDropdowns();
+
+  // Restore admin state on load (already done above globally)
 
   if (location.hash === "#write") {
     if (writeTab) writeTab.click();
