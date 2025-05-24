@@ -407,8 +407,20 @@ window.onload = async () => {
   await refreshCategoryDropdowns();
 
   if (location.hash === "#write" && writeTab) {
-    writeTab.click();
-  } else if (viewTab) {
+  if (!isAdmin) {
+    const u = prompt("Enter admin username:");
+    const p = prompt("Enter admin password:");
+    if (u === adminUsername && p === adminPassword) {
+      isAdmin = true;
+      localStorage.setItem("isAdmin", "true");
+      alert("Welcome, Admin!");
+    } else {
+      alert("Incorrect credentials. Redirecting to view mode.");
+      location.hash = "#view";
+    }
+  }
+  if (isAdmin) writeTab.click();
+} else if (viewTab) {
     viewTab.click();
   } else {
     await fetchArticles();
