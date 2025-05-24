@@ -66,6 +66,12 @@
     </section>
   </div>
 
+  <!-- Loading and Success GIF Containers -->
+  <div id="gifContainer" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; text-align: center;">
+    <img id="loadingGif" src="publishing.gif" alt="Publishing..." style="display: none; width: 150px;">
+    <img id="successGif" src="success.gif" alt="Success!" style="display: none; width: 150px;">
+  </div>
+
   <script src="script.js"></script>
   <script>
     const menuToggle = document.getElementById('menuToggle');
@@ -87,6 +93,35 @@
         sideMenu.classList.remove('open');
         overlay.classList.remove('active');
       });
+    });
+
+    const form = document.getElementById('articleForm');
+    const loadingGif = document.getElementById('loadingGif');
+    const successGif = document.getElementById('successGif');
+    const gifContainer = document.getElementById('gifContainer');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      gifContainer.style.display = 'block';
+      loadingGif.style.display = 'block';
+      successGif.style.display = 'none';
+
+      try {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        loadingGif.style.display = 'none';
+        successGif.style.display = 'block';
+
+        setTimeout(() => {
+          gifContainer.style.display = 'none';
+        }, 2000);
+
+        form.reset();
+      } catch (error) {
+        alert("Error publishing article.");
+        gifContainer.style.display = 'none';
+      }
     });
   </script>
 </body>
