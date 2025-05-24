@@ -403,30 +403,30 @@ if (form) {
 /* ------------------------------------------------------------------
    On load
 ------------------------------------------------------------------ */
-window.onload = async () => {
-  await refreshCategoryDropdowns();
+window.addEventListener("DOMContentLoaded", async () => {
+  await refreshCategoryDropdowns();   // Loads category buttons
+  await fetchArticles();              // Preload articles
 
-  if (location.hash === "#write" && writeTab) {
-  if (!isAdmin) {
-    const u = prompt("Enter admin username:");
-    const p = prompt("Enter admin password:");
-    if (u === adminUsername && p === adminPassword) {
-      isAdmin = true;
-      localStorage.setItem("isAdmin", "true");
-      alert("Welcome, Admin!");
-    } else {
-      alert("Incorrect credentials. Redirecting to view mode.");
-      location.hash = "#view";
+  // Handle #write auto-login logic
+  if (location.hash === "#write") {
+    if (!isAdmin) {
+      const u = prompt("Enter admin username:");
+      const p = prompt("Enter admin password:");
+      if (u === adminUsername && p === adminPassword) {
+        isAdmin = true;
+        localStorage.setItem("isAdmin", "true");
+        alert("Welcome, Admin!");
+      } else {
+        alert("Incorrect credentials. Redirecting to view mode.");
+        location.hash = "#view";
+      }
     }
-  }
-  if (isAdmin) writeTab.click();
-} else if (viewTab) {
-    viewTab.click();
+    if (isAdmin && writeTab) writeTab.click();
   } else {
-    await fetchArticles();
-    displayArticles();
+    if (viewTab) viewTab.click();
+    else displayArticles();  // Fallback
   }
-};
+});
 
 document.addEventListener("DOMContentLoaded", async () => {
   await refreshCategoryDropdowns();   // Loads category buttons
