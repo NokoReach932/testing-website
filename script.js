@@ -439,6 +439,18 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+    // Directly activate admin view
+    writeSection?.classList.add("active");
+    viewSection?.classList.remove("active");
+    displayAdminArticles();
+  } else {
+    // Default to view
+    viewSection?.classList.add("active");
+    writeSection?.classList.remove("active");
+    displayArticles();
+  }
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
   await refreshCategoryDropdowns();   // Loads category buttons
   await displayArticles();            // Displays articles initially
