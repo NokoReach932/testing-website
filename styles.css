@@ -365,7 +365,7 @@ button:hover {
   color: white;
   white-space: pre-wrap;
   line-height: 1.6;
-  text-align: justify;
+  text-align: center;
 }
 
 @media (max-width: 600px) {
