@@ -22,47 +22,12 @@
 
   <nav id="sideMenu" class="side-menu">
     <button id="viewTab" class="active">Home</button>
-    <button id="writeTab">Admin Write</button>
+    <a href="write.html"><button>Admin Write</button></a>
   </nav>
 
   <div class="container">
     <section id="viewSection" class="section active">
       <div id="articlesList"></div>
-    </section>
-
-    <section id="writeSection" class="section">
-      <h2>Write New Article</h2>
-
-      <!-- Article Submission Form -->
-      <form id="articleForm">
-        <select id="categorySelect">
-          <option value="" disabled selected>Select Category (Optional)</option>
-        </select>
-        <input type="text" id="title" placeholder="Article Title" required>
-        <textarea id="content" rows="8" placeholder="Article Content" required></textarea>
-        <input type="file" id="imageUpload" accept="image/*">
-        <button type="submit">Publish</button>
-      </form>
-
-      <!-- Category Management Panel -->
-      <div id="categoryPanel" class="admin-panel">
-        <h3>Category Management</h3>
-
-        <div class="category-form">
-          <input type="text" id="newCategory" placeholder="New Category Name">
-          <button type="button" id="createCategoryBtn">Create Category</button>
-        </div>
-
-        <div class="category-delete">
-          <select id="deleteCategorySelect">
-            <option disabled selected>Select Category to Delete</option>
-          </select>
-          <button type="button" id="deleteCategoryBtn">Delete Category</button>
-        </div>
-      </div>
-
-      <!-- Admin-only article list -->
-      <div id="adminArticles"></div>
     </section>
   </div>
 
@@ -93,34 +58,6 @@
         sideMenu.classList.remove('open');
         overlay.classList.remove('active');
       });
-    });
-    
-    const loadingGif = document.getElementById('loadingGif');
-    const successGif = document.getElementById('successGif');
-    const gifContainer = document.getElementById('gifContainer');
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      gifContainer.style.display = 'block';
-      loadingGif.style.display = 'block';
-      successGif.style.display = 'none';
-
-      try {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        loadingGif.style.display = 'none';
-        successGif.style.display = 'block';
-
-        setTimeout(() => {
-          gifContainer.style.display = 'none';
-        }, 2000);
-
-        form.reset();
-      } catch (error) {
-        alert("Error publishing article.");
-        gifContainer.style.display = 'none';
-      }
     });
   </script>
 </body>
