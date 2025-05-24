@@ -375,3 +375,10 @@ button:hover {
 @media (max-width: 600px) {
   /* your existing or additional styles for mobile article page */
 }
+#view {
+  display: block;
+}
+#write {
+  display: none;
+}
+
