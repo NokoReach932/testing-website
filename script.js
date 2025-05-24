@@ -406,9 +406,12 @@ if (form) {
 window.onload = async () => {
   await refreshCategoryDropdowns();
 
-  if (location.hash === "#write") {
-    if (writeTab) writeTab.click();
+  if (location.hash === "#write" && writeTab) {
+    writeTab.click();
+  } else if (viewTab) {
+    viewTab.click();
   } else {
-    if (viewTab) viewTab.click();
+    await fetchArticles();
+    displayArticles();
   }
 };
