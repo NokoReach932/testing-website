@@ -352,6 +352,8 @@ button:hover {
   overflow-wrap: break-word;
   box-sizing: border-box;
   overflow-x: hidden;
+  margin-left: -2rem;
+  margin-right: -2rem;
 }
 
 .article-date,
@@ -367,7 +369,7 @@ button:hover {
   color: white;
   white-space: pre-wrap;
   line-height: 1.6;
-  text-align: center;
+  text-align: justify;
 }
 
 @media (max-width: 600px) {
