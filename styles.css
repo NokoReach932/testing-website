@@ -271,8 +271,10 @@ button:hover {
   }
 
   .article-preview {
-    max-width: 100%;
-    margin: 0 0 1rem 0;
+    max-width: 150%;
+    margin: 0 0 0rem 0;
+    width: 125%;
+    height: 100%;
   }
 
   .side-menu {
