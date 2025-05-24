@@ -24,6 +24,35 @@ const deleteCategorySelect= document.getElementById("deleteCategorySelect");
 const categorySelect      = document.getElementById("categorySelect");
 const logo                = document.querySelector(".logo");
 
+// Added: Create a GIF overlay element inside the form or dynamically
+let gifOverlay = document.createElement("div");
+gifOverlay.style.position = "fixed";
+gifOverlay.style.top = "0";
+gifOverlay.style.left = "0";
+gifOverlay.style.width = "100%";
+gifOverlay.style.height = "100%";
+gifOverlay.style.backgroundColor = "rgba(0,0,0,0.5)";
+gifOverlay.style.display = "flex";
+gifOverlay.style.justifyContent = "center";
+gifOverlay.style.alignItems = "center";
+gifOverlay.style.zIndex = "1000";
+gifOverlay.style.display = "none";
+
+const loadingImg = document.createElement("img");
+loadingImg.src = "loading.gif";  // Ensure you have this file in your assets
+loadingImg.alt = "Loading...";
+loadingImg.style.width = "100px";
+loadingImg.style.height = "100px";
+
+const successImg = document.createElement("img");
+successImg.src = "success.gif";  // Ensure you have this file in your assets
+successImg.alt = "Success!";
+successImg.style.width = "100px";
+successImg.style.height = "100px";
+
+gifOverlay.appendChild(loadingImg);
+document.body.appendChild(gifOverlay);
+
 /* ------------------------------------------------------------------
    Logo hover / click
 ------------------------------------------------------------------ */
@@ -326,7 +355,7 @@ if (viewTab && writeTab && viewSection && writeSection) {
 }
 
 /* ------------------------------------------------------------------
-   Article submission
+   Article submission with GIF overlay
 ------------------------------------------------------------------ */
 if (form) {
   form.addEventListener("submit", async e => {
@@ -336,6 +365,11 @@ if (form) {
     const file    = document.getElementById("imageUpload").files[0];
     if (!title || !content) { alert("Title and content are required."); return; }
 
+    // Show loading GIF overlay
+    successImg.style.display = "none";
+    loadingImg.style.display = "block";
+    gifOverlay.style.display = "flex";
+
     const image = file ? await convertImageToBase64(file) : "";
     const category = categorySelect ? categorySelect.value : "";
 
@@ -344,12 +378,25 @@ if (form) {
       createdAt: new Date().toISOString(),
     };
 
-    await saveArticleToBackend(newArticle);
-    alert("Article saved!");
-    form.reset();
-    await fetchArticles();
-    displayAdminArticles();
-    if (writeTab) writeTab.click();
+    try {
+      await saveArticleToBackend(newArticle);
+      // Show success GIF after save
+      loadingImg.style.display = "none";
+      successImg.style.display = "block";
+
+      // Wait 1.5 seconds to show success GIF, then reset form and hide overlay
+      setTimeout(() => {
+        gifOverlay.style.display = "none";
+        form.reset();
+        fetchArticles().then(() => {
+          displayAdminArticles();
+          if (writeTab) writeTab.click();
+        });
+      }, 1500);
+    } catch (err) {
+      alert("Failed to save article. Please try again.");
+      gifOverlay.style.display = "none";
+    }
   });
 }
 
@@ -358,8 +405,6 @@ if (form) {
 ------------------------------------------------------------------ */
 window.onload = async () => {
   await refreshCategoryDropdowns();
-
-  // Restore admin state on load (already done above globally)
 
   if (location.hash === "#write") {
     if (writeTab) writeTab.click();
