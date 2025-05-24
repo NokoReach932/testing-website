@@ -404,11 +404,12 @@ if (form) {
    On load
 ------------------------------------------------------------------ */
 window.addEventListener("DOMContentLoaded", async () => {
-  await refreshCategoryDropdowns();   // Loads category buttons
-  await fetchArticles();              // Preload articles
+  await refreshCategoryDropdowns();
+  await fetchArticles();
 
-  // Handle #write auto-login logic
-  if (location.hash === "#write") {
+  const isWriteView = location.hash === "#write";
+
+  if (isWriteView) {
     if (!isAdmin) {
       const u = prompt("Enter admin username:");
       const p = prompt("Enter admin password:");
@@ -417,14 +418,24 @@ window.addEventListener("DOMContentLoaded", async () => {
         localStorage.setItem("isAdmin", "true");
         alert("Welcome, Admin!");
       } else {
-        alert("Incorrect credentials. Redirecting to view mode.");
+        alert("Incorrect credentials.");
         location.hash = "#view";
+        writeSection?.classList.remove("active");
+        viewSection?.classList.add("active");
+        displayArticles();
+        return;
       }
     }
-    if (isAdmin && writeTab) writeTab.click();
+
+    // Directly activate admin view
+    writeSection?.classList.add("active");
+    viewSection?.classList.remove("active");
+    displayAdminArticles();
   } else {
-    if (viewTab) viewTab.click();
-    else displayArticles();  // Fallback
+    // Default to view
+    viewSection?.classList.add("active");
+    writeSection?.classList.remove("active");
+    displayArticles();
   }
 });
 
