@@ -415,3 +415,8 @@ window.onload = async () => {
     displayArticles();
   }
 };
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await refreshCategoryDropdowns();   // Loads category buttons
+  await displayArticles();            // Displays articles initially
+});
