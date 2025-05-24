@@ -417,41 +417,15 @@ window.addEventListener("DOMContentLoaded", async () => {
         isAdmin = true;
         localStorage.setItem("isAdmin", "true");
         alert("Welcome, Admin!");
+        if (writeTab) writeTab.click();
       } else {
         alert("Incorrect credentials.");
-        location.hash = "#view";
-        writeSection?.classList.remove("active");
-        viewSection?.classList.add("active");
-        displayArticles();
-        return;
+        location.href = "index.html#view"; // Redirect to view if login fails
       }
+    } else {
+      if (writeTab) writeTab.click(); // Already admin
     }
-
-    // Directly activate admin view
-    writeSection?.classList.add("active");
-    viewSection?.classList.remove("active");
-    displayAdminArticles();
   } else {
-    // Default to view
-    viewSection?.classList.add("active");
-    writeSection?.classList.remove("active");
-    displayArticles();
+    if (viewTab) viewTab.click();
   }
-});
-
-    // Directly activate admin view
-    writeSection?.classList.add("active");
-    viewSection?.classList.remove("active");
-    displayAdminArticles();
-  } else {
-    // Default to view
-    viewSection?.classList.add("active");
-    writeSection?.classList.remove("active");
-    displayArticles();
-  }
-});
-
-document.addEventListener("DOMContentLoaded", async () => {
-  await refreshCategoryDropdowns();   // Loads category buttons
-  await displayArticles();            // Displays articles initially
 });
