@@ -27,10 +27,20 @@
   <div class="container">
     <!-- Main content section for displaying the article -->
     <section id="viewSection" class="section active">
-      <div id="articleContainer">
-        <p>Loading article...</p>
+      <div style="display: flex; flex-direction: row; gap: 2rem; flex-wrap: wrap;">
+        <!-- Article content -->
+        <div style="flex: 3; min-width: 300px;">
+          <div id="articleContainer">
+            <p>Loading article...</p>
+          </div>
+          <a href="index.html" class="back-link">← ត្រឡប់ទៅទំព័រដើម</a>
+        </div>
+
+        <!-- Related articles -->
+        <aside id="relatedArticles" style="flex: 1; min-width: 280px;">
+          <!-- Related articles will be populated by JavaScript -->
+        </aside>
       </div>
-      <a href="index.html" class="back-link">← ត្រឡប់ទៅទំព័រដើម</a>
     </section>
 
     <!-- Hidden admin write section -->
@@ -116,6 +126,39 @@
           <div class="article-content">${article.content}</div>
         </div>
       `;
+
+      // Optional: fetch related articles by category
+      if (article.category) {
+        fetchRelatedArticles(article.category, article._id);
+      }
+    }
+
+    async function fetchRelatedArticles(category, excludeId) {
+      try {
+        const res = await fetch(`${API_BASE}/articles?category=${encodeURIComponent(category)}`);
+        const articles = await res.json();
+
+        const filtered = articles.filter(a => a._id !== excludeId).slice(0, 5);
+
+        const relatedContainer = document.getElementById("relatedArticles");
+
+        if (filtered.length === 0) {
+          relatedContainer.innerHTML = "<p>No related articles found.</p>";
+          return;
+        }
+
+        relatedContainer.innerHTML = `
+          <h3 style="color: white; margin-bottom: 1rem;">អត្ថបទពាក់ព័ន្ធ</h3>
+          ${filtered.map(a => `
+            <div class="article-preview" onclick="location.href='article.htm?id=${a._id}'">
+              ${a.image ? `<img src="${a.image}" alt="Related image">` : ""}
+              <div class="article-title">${a.title}</div>
+            </div>
+          `).join('')}
+        `;
+      } catch (err) {
+        console.error("Failed to fetch related articles", err);
+      }
     }
 
     window.onload = displayArticle;
