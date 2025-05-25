@@ -24,7 +24,7 @@
     <button id="writeTab">Admin Write</button>
   </nav>
 
-  <div class="container">
+  <div class="container article-page-layout">
     <!-- Main content section for displaying the article -->
     <section id="viewSection" class="section active">
       <div id="articleContainer">
@@ -32,6 +32,12 @@
       </div>
       <a href="index.html" class="back-link">← ត្រឡប់ទៅទំព័រដើម</a>
     </section>
+
+    <!-- Related Articles Sidebar -->
+    <aside id="relatedArticles" class="related-articles">
+      <h3>អត្ថបទទាក់ទង</h3>
+      <div id="relatedList"></div>
+    </aside>
 
     <!-- Hidden admin write section -->
     <section id="writeSection" class="section">
@@ -81,6 +87,19 @@
       }
     }
 
+    async function fetchRelatedArticles(category, currentId) {
+      try {
+        const res = await fetch(`${API_BASE}/articles?category=${encodeURIComponent(category)}`);
+        if (!res.ok) return [];
+
+        const articles = await res.json();
+        return articles.filter(a => a._id !== currentId).slice(0, 4);
+      } catch (err) {
+        console.error("Failed to fetch related articles", err);
+        return [];
+      }
+    }
+
     function formatDate(dateString) {
       const date = new Date(dateString);
       const options = { hour: "numeric", minute: "numeric", hour12: true };
@@ -92,8 +111,8 @@
     async function displayArticle() {
       const urlParams = new URLSearchParams(window.location.search);
       const articleId = urlParams.get("id");
-
       const container = document.getElementById("articleContainer");
+      const relatedList = document.getElementById("relatedList");
 
       if (!articleId) {
         container.innerHTML = "<p>Article ID is missing in URL.</p>";
@@ -116,6 +135,19 @@
           <div class="article-content">${article.content}</div>
         </div>
       `;
+
+      // Load related articles
+      if (article.category) {
+        const relatedArticles = await fetchRelatedArticles(article.category, article._id);
+        relatedList.innerHTML = relatedArticles.length
+          ? relatedArticles.map(a => `
+            <div class="related-item" onclick="location.href='article.html?id=${a._id}'">
+              ${a.image ? `<img src="${a.image}" alt="${a.title}" />` : ""}
+              <p>${a.title}</p>
+            </div>
+          `).join('')
+          : "<p>គ្មានអត្ថបទទាក់ទង</p>";
+      }
     }
 
     window.onload = displayArticle;
