@@ -16,6 +16,7 @@ const form                = document.getElementById("articleForm");
 const articlesList        = document.getElementById("articlesList");
 const adminArticles       = document.getElementById("adminArticles");
 const categoryNav         = document.getElementById("categoryNav");
+const paginationControls  = document.getElementById("paginationControls");
 
 const createCategoryBtn   = document.getElementById("createCategoryBtn");
 const deleteCategoryBtn   = document.getElementById("deleteCategoryBtn");
@@ -79,6 +80,10 @@ const adminPassword       = "123";
 let articleData           = [];
 let filteredArticles      = [];
 let currentCategoryFilter = null;
+
+// Pagination state
+let currentPage = 1;
+const articlesPerPage = 6;
 
 /* ------------------------------------------------------------------
    Helpers: fetches
@@ -158,7 +163,12 @@ function displayCategoryNav(categories) {
   allBtn.textContent = "ព័ត៌មានចម្រុះ";
   allBtn.classList.add("category-btn");
   if (!currentCategoryFilter) allBtn.classList.add("active");
-  allBtn.onclick = () => { currentCategoryFilter = null; displayArticles(); updateCategoryNavActive(); };
+  allBtn.onclick = () => {
+    currentCategoryFilter = null;
+    currentPage = 1;
+    displayArticles();
+    updateCategoryNavActive();
+  };
   categoryNav.appendChild(allBtn);
 
   categories.forEach(cat => {
@@ -166,7 +176,12 @@ function displayCategoryNav(categories) {
     btn.textContent = cat;
     btn.classList.add("category-btn");
     if (cat === currentCategoryFilter) btn.classList.add("active");
-    btn.onclick = () => { currentCategoryFilter = cat; displayArticles(); updateCategoryNavActive(); };
+    btn.onclick = () => {
+      currentCategoryFilter = cat;
+      currentPage = 1;
+      displayArticles();
+      updateCategoryNavActive();
+    };
     categoryNav.appendChild(btn);
   });
 }
@@ -248,10 +263,16 @@ async function displayArticles() {
 
   if (!filteredArticles.length) {
     articlesList.innerHTML = "<p>No articles available.</p>";
+    if (paginationControls) paginationControls.innerHTML = "";
     return;
   }
 
-  filteredArticles.forEach(article => {
+  // Pagination logic
+  const startIndex = (currentPage - 1) * articlesPerPage;
+  const endIndex = startIndex + articlesPerPage;
+  const articlesToDisplay = filteredArticles.slice(startIndex, endIndex);
+
+  articlesToDisplay.forEach(article => {
     const div = document.createElement("div");
     div.className = "article-preview";
     div.innerHTML = `
@@ -264,6 +285,28 @@ async function displayArticles() {
   });
 
   updateCategoryNavActive();
+  renderPaginationControls();
+}
+
+function renderPaginationControls() {
+  if (!paginationControls) return;
+
+  paginationControls.innerHTML = "";
+  const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
+
+  if (totalPages <= 1) return;
+
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.classList.add("pagination-btn");
+    if (i === currentPage) btn.classList.add("active");
+    btn.onclick = () => {
+      currentPage = i;
+      displayArticles();
+    };
+    paginationControls.appendChild(btn);
+  }
 }
 
 function displayAdminArticles() {
@@ -311,6 +354,7 @@ if (viewTab && writeTab && viewSection && writeSection) {
       location.href = "index.html#view";
       return;
     }
+    currentPage = 1;  // Reset pagination
     viewTab.classList.add("active");
     writeTab.classList.remove("active");
     viewSection.classList.add("active");
@@ -411,4 +455,10 @@ window.onload = async () => {
   } else {
     if (viewTab) viewTab.click();
   }
+};
+
+window.onpopstate = e => {
+  const section = e.state?.section;
+  if (section === "write" && writeTab) writeTab.click();
+  else if (section === "view" && viewTab) viewTab.click();
 };
