@@ -11,6 +11,7 @@ body {
   background: #000;
   min-height: 100vh;
   overflow-x: hidden;
+  color: white;
 }
 
 /* Header */
@@ -21,12 +22,6 @@ header {
   position: relative;
 }
 
-.header-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 .menu-toggle {
   position: absolute;
   top: 50%;
@@ -34,6 +29,7 @@ header {
   transform: translateY(-50%);
   font-size: 1.8rem;
   cursor: pointer;
+  user-select: none;
 }
 
 /* Logo styles */
@@ -91,13 +87,13 @@ header {
   font-size: 1.2rem;
   padding: 1rem;
   cursor: pointer;
+  text-align: left;
+  transition: background-color 0.3s ease;
 }
 
-.side-menu button:hover {
+.side-menu button:hover,
+.side-menu button.active {
   background-color: #2c3e50;
-}
-
-.side-menu .active {
   font-weight: bold;
 }
 
@@ -107,6 +103,8 @@ header {
   justify-content: space-between;
   padding: 2rem;
   overflow-x: hidden;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 /* Section visibility */
@@ -146,6 +144,7 @@ header {
   max-width: 320px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   overflow: hidden;
+  color: #060606;
 }
 
 .article-preview:hover {
@@ -171,7 +170,6 @@ header {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #060606;
 }
 
 /* Article content styles */
@@ -184,7 +182,7 @@ header {
 }
 
 .article-title {
-  margin: 0;
+  margin: 0 0 1rem 0;
   font-weight: bold;
   color: white;
 }
@@ -214,7 +212,8 @@ button {
   font-size: 1.1rem;
   border: none;
   cursor: pointer;
-  border-radius: 0rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.3s ease;
 }
 
 button:hover {
@@ -228,6 +227,7 @@ button:hover {
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .delete-btn:hover {
@@ -243,14 +243,12 @@ button:hover {
   margin-bottom: 1.5rem;
 }
 
-#categoryPanel .category-form {
-  margin-bottom: 1.5rem;
-}
-
+#categoryPanel .category-form,
 #categoryPanel .category-delete {
   margin-bottom: 1.5rem;
 }
 
+/* Responsive grids */
 @media (max-width: 900px) {
   #articlesList {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -263,18 +261,19 @@ button:hover {
   }
 }
 
+/* Responsive container & menu */
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
     padding: 1rem;
     overflow-x: hidden;
+    max-width: 100%;
   }
 
   .article-preview {
-    max-width: 150%;
-    margin: 0 0 0rem 0;
-    width: 125%;
-    height: 100%;
+    max-width: 100%;
+    margin-bottom: 1.5rem;
+    width: 100%;
   }
 
   .side-menu {
@@ -287,6 +286,7 @@ button:hover {
   }
 }
 
+/* Category navigation bar */
 .category-nav {
   display: flex;
   overflow-x: auto;
@@ -329,6 +329,7 @@ button:hover {
   font-weight: bold;
 }
 
+/* Article images full width and responsive */
 .article-full img,
 .article-container img,
 #articleContainer img {
@@ -341,6 +342,7 @@ button:hover {
   box-sizing: border-box;
 }
 
+/* Article container layout */
 .article-container {
   display: flex;
   flex-direction: column;
@@ -372,12 +374,11 @@ button:hover {
   text-align: justify;
 }
 
-@media (max-width: 600px) {
-  /* your existing or additional styles for mobile article page */
-}
+/* View/Write toggle */
 #view {
   display: block;
 }
+
 #write {
   display: none;
 }
@@ -457,5 +458,7 @@ button:hover {
   .article-container {
     margin: 0 auto;
     padding: 1rem;
+    margin-left: 0;
+    margin-right: 0;
   }
 }
