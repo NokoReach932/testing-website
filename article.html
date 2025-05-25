@@ -42,83 +42,124 @@
 
   <script src="script.js"></script>
 
-  <script>
-    const API_BASE = "https://komnottra-backend.onrender.com";
+  <script src="script.js"></script>
 
-    const menuToggle = document.getElementById('menuToggle');
-    const sideMenu = document.getElementById('sideMenu');
-    const overlay = document.getElementById('overlay');
+<!-- ---  ONLY this block is new / changed  ----------------------- -->
+<script>
+/* ------------  CONFIG  ------------ */
+const API_BASE = "https://komnottra-backend.onrender.com";
+const MAX_RELATED = 4;               // how many cards to show
 
-    menuToggle.addEventListener('click', () => {
-      sideMenu.classList.toggle('open');
-      overlay.classList.toggle('active');
-    });
+/* ------------  MENU (unchanged) ------------ */
+const menuToggle = document.getElementById("menuToggle");
+const sideMenu   = document.getElementById("sideMenu");
+const overlay    = document.getElementById("overlay");
 
-    overlay.addEventListener('click', () => {
-      sideMenu.classList.remove('open');
-      overlay.classList.remove('active');
-    });
+menuToggle.addEventListener("click", () => {
+  sideMenu.classList.toggle("open");
+  overlay.classList.toggle("active");
+});
+overlay.addEventListener("click", () => {
+  sideMenu.classList.remove("open");
+  overlay.classList.remove("active");
+});
+document.querySelectorAll("#sideMenu button").forEach(btn =>
+  btn.addEventListener("click", () => {
+    sideMenu.classList.remove("open");
+    overlay.classList.remove("active");
+  })
+);
 
-    document.querySelectorAll('#sideMenu button').forEach(button => {
-      button.addEventListener('click', () => {
-        sideMenu.classList.remove('open');
-        overlay.classList.remove('active');
-      });
-    });
+if (typeof loadCategories === "function") loadCategories();
 
-    if (typeof loadCategories === "function") {
-      loadCategories();
+/* ------------  HELPERS  ------------ */
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("km-KH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true
+  });
+}
+
+/* ------------  DATA LAYERS  ------------ */
+async function fetchJSON(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+  return res.json();
+}
+const getArticleById = id => fetchJSON(`${API_BASE}/articles/${id}`);
+const getRelated     = (cat, id) =>
+  fetchJSON(
+    `${API_BASE}/articles?category=${encodeURIComponent(cat)}&excludeId=${id}`
+  );
+
+/* ------------  UI BUILDERS  ------------ */
+function cardHTML(a) {
+  return `
+    <a href="article.html?id=${a.id}" class="related-article">
+      ${a.image ? `<img src="${a.image}" alt="${a.title}">` : ""}
+      <h3>${a.title}</h3>
+    </a>`;
+}
+
+/* ------------  MAIN RENDER  ------------ */
+async function displayArticle() {
+  const id = new URLSearchParams(location.search).get("id");
+  const wrap = document.getElementById("articleContainer");
+
+  if (!id) return (wrap.innerHTML = "<p>Missing article ID</p>");
+
+  let article;
+  try {
+    article = await getArticleById(id);
+  } catch (e) {
+    console.error(e);
+    return (wrap.innerHTML = "<p>Article not found.</p>");
+  }
+
+  /* --- primary article markup --- */
+  wrap.innerHTML = `
+    <div class="article-container">
+      <h1 class="article-title">${article.title}</h1>
+      ${article.createdAt
+        ? `<p class="article-date">Published: ${formatDate(
+            article.createdAt
+          )}</p>`
+        : ""}
+      ${article.category
+        ? `<p class="article-category">ប្រភេទព័ត៌មាន: ${article.category}</p>`
+        : ""}
+      ${article.image ? `<img src="${article.image}" alt="">` : ""}
+      <div class="article-content">${article.content}</div>
+    </div>
+    <div id="relatedBox" class="related-articles-container">
+      <h2>អត្ថបទទាក់ទង</h2>
+      <div id="relList" class="related-articles-list"></div>
+    </div>
+  `;
+
+  /* --- fetch + inject related --- */
+  try {
+    const rel = await getRelated(article.category, article.id);
+    const list = document.getElementById("relList");
+
+    if (!rel.length) {
+      list.innerHTML = "<p>គ្មានអត្ថបទទាក់ទងទេ</p>";
+      return;
     }
+    list.innerHTML = rel.slice(0, MAX_RELATED).map(cardHTML).join("");
+  } catch (e) {
+    console.error("Related fetch error:", e);
+  }
+}
 
-    async function fetchArticleById(id) {
-      try {
-        const res = await fetch(`${API_BASE}/articles/${id}`);
-        if (!res.ok) throw new Error("Article not found");
-        return await res.json();
-      } catch (err) {
-        console.error("Failed to fetch article", err);
-        return null;
-      }
-    }
+window.addEventListener("DOMContentLoaded", displayArticle);
+</script>
+<!-- ------------------------------------------------------------- -->
 
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      const options = { hour: "numeric", minute: "numeric", hour12: true };
-      const datePart = `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
-      const timePart = date.toLocaleTimeString([], options);
-      return `${datePart} ${timePart}`;
-    }
-
-    async function displayArticle() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const articleId = urlParams.get("id");
-
-      const container = document.getElementById("articleContainer");
-
-      if (!articleId) {
-        container.innerHTML = "<p>Article ID is missing in URL.</p>";
-        return;
-      }
-
-      const article = await fetchArticleById(articleId);
-
-      if (!article) {
-        container.innerHTML = "<p>Article not found.</p>";
-        return;
-      }
-
-      container.innerHTML = `
-        <div class="article-container">
-          <h1 class="article-title">${article.title}</h1>
-          ${article.createdAt ? `<p class="article-date">Published Date: ${formatDate(article.createdAt)}</p>` : ""}
-          ${article.category ? `<p class="article-category">ប្រភេទព័ត៌មាន: ${article.category}</p>` : ""}
-          ${article.image ? `<img src="${article.image}" alt="Article Image" />` : ""}
-          <div class="article-content">${article.content}</div>
-        </div>
-      `;
-    }
-
-    window.onload = displayArticle;
-  </script>
 </body>
 </html>
