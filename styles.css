@@ -382,3 +382,31 @@ button:hover {
   display: none;
 }
 
+#related-articles {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 2px solid #ddd;
+}
+
+#related-articles h2 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+}
+
+#related-list {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+#related-list li {
+  margin-bottom: 10px;
+}
+
+#related-list li a {
+  text-decoration: none;
+  color: #1a73e8;
+}
+
+#related-list li a:hover {
+  text-decoration: underline;
+}
