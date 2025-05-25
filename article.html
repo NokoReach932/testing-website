@@ -89,10 +89,12 @@
 
     async function fetchRelatedArticles(category, currentId) {
       try {
-        const res = await fetch(`${API_BASE}/articles?category=${encodeURIComponent(category)}`);
+        // Changed 'category' param to 'article-category' as requested
+        const res = await fetch(`${API_BASE}/articles?article-category=${encodeURIComponent(category)}`);
         if (!res.ok) return [];
 
         const articles = await res.json();
+        // filter out the current article by _id
         return articles.filter(a => a._id !== currentId).slice(0, 4);
       } catch (err) {
         console.error("Failed to fetch related articles", err);
