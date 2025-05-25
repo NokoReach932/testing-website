@@ -90,6 +90,47 @@
     }
 
     async function displayArticle() {
+      async function fetchRelatedArticles(category, excludeId) {
+  try {
+    // Fetch related articles from the API by category (excluding the current article)
+    const res = await fetch(`${API_BASE}/articles?category=${encodeURIComponent(category)}`);
+    if (!res.ok) throw new Error("Failed to fetch related articles");
+    let articles = await res.json();
+
+    // Filter out current article by id
+    articles = articles.filter(a => a.id !== excludeId);
+
+    // Return top 3 related articles
+    return articles.slice(0, 3);
+  } catch (err) {
+    console.error("Error fetching related articles", err);
+    return [];
+  }
+}
+
+async function displayRelatedArticles(category, currentId) {
+  const relatedList = document.getElementById("related-list");
+  relatedList.innerHTML = "<li>Loading related articles...</li>";
+
+  const relatedArticles = await fetchRelatedArticles(category, currentId);
+
+  if (relatedArticles.length === 0) {
+    relatedList.innerHTML = "<li>No related articles found.</li>";
+    return;
+  }
+
+  relatedList.innerHTML = ""; // Clear loading text
+
+  relatedArticles.forEach(article => {
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = `article.html?id=${article.id}`;
+    a.textContent = article.title;
+    li.appendChild(a);
+    relatedList.appendChild(li);
+  });
+}
+
       const urlParams = new URLSearchParams(window.location.search);
       const articleId = urlParams.get("id");
 
