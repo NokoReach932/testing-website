@@ -24,10 +24,11 @@
     <button id="writeTab">Admin Write</button>
   </nav>
 
+  <!-- Updated layout container -->
   <div class="container article-page-layout">
     <!-- Main content section for displaying the article -->
     <section id="viewSection" class="section active">
-      <div id="articleContainer">
+      <div id="articleContainer" class="article-container">
         <p>Loading article...</p>
       </div>
       <a href="index.html" class="back-link">← ត្រឡប់ទៅទំព័រដើម</a>
@@ -127,13 +128,11 @@
       }
 
       container.innerHTML = `
-        <div class="article-container">
-          <h1 class="article-title">${article.title}</h1>
-          ${article.createdAt ? `<p class="article-date">Published Date: ${formatDate(article.createdAt)}</p>` : ""}
-          ${article.category ? `<p class="article-category">ប្រភេទព័ត៌មាន: ${article.category}</p>` : ""}
-          ${article.image ? `<img src="${article.image}" alt="Article Image" />` : ""}
-          <div class="article-content">${article.content}</div>
-        </div>
+        <h1 class="article-title">${article.title}</h1>
+        ${article.createdAt ? `<p class="article-date">Published Date: ${formatDate(article.createdAt)}</p>` : ""}
+        ${article.category ? `<p class="article-category">ប្រភេទព័ត៌មាន: ${article.category}</p>` : ""}
+        ${article.image ? `<img src="${article.image}" alt="Article Image" />` : ""}
+        <div class="article-content">${article.content}</div>
       `;
 
       // Load related articles if category exists
