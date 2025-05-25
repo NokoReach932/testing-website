@@ -382,3 +382,41 @@ button:hover {
   display: none;
 }
 
+.related-articles-container {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+}
+
+.related-articles-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.related-article {
+  width: 220px;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fafafa;
+  transition: transform 0.2s;
+}
+
+.related-article:hover {
+  transform: translateY(-3px);
+}
+
+.related-article img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+}
+
+.related-article h3 {
+  padding: 10px;
+  font-size: 1rem;
+}
+
