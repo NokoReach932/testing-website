@@ -131,6 +131,60 @@
         gifContainer.style.display = 'none';
       }
     });
+
+    const downloadBackupBtn = document.getElementById("downloadBackupBtn");
+const restoreBackupBtn = document.getElementById("restoreBackupBtn");
+const restoreFileInput = document.getElementById("restoreFileInput");
+
+downloadBackupBtn.addEventListener("click", () => {
+  fetch("http://localhost:5000/admin/backup/download")
+    .then((res) => {
+      if (!res.ok) throw new Error("Network response was not ok");
+      return res.blob();
+    })
+    .then((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "backup.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    })
+    .catch((err) => alert("Failed to download backup: " + err.message));
+});
+
+restoreBackupBtn.addEventListener("click", () => {
+  restoreFileInput.click();
+});
+
+restoreFileInput.addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+
+    const res = await fetch("http://localhost:5000/admin/backup/restore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Failed to restore backup");
+    }
+
+    alert("Backup restored successfully!");
+    // Optionally: reload page or refresh data here
+  } catch (error) {
+    alert("Error restoring backup: " + error.message);
+  }
+});
+    
   </script>
 </body>
 </html>
