@@ -103,7 +103,8 @@ if (!articleSlug) {
 // Assuming you have a function to fetch article by slug
 async function fetchArticleBySlug(slug) {
   try {
-    const response = await fetch(`/articles/slug/${encodeURIComponent(slug)}`);
+    // Add API_BASE before the URL
+    const response = await fetch(`${API_BASE}/articles/slug/${encodeURIComponent(slug)}`);
     if (!response.ok) {
       return null;
     }
@@ -113,6 +114,7 @@ async function fetchArticleBySlug(slug) {
     return null;
   }
 }
+
 
 const article = await fetchArticleBySlug(articleSlug);
 
