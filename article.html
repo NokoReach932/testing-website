@@ -90,22 +90,39 @@
     }
 
     async function displayArticle() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const articleId = urlParams.get("id");
+     const urlParams = new URLSearchParams(window.location.search);
+const articleSlug = urlParams.get("slug");
 
-      const container = document.getElementById("articleContainer");
+const container = document.getElementById("articleContainer");
 
-      if (!articleId) {
-        container.innerHTML = "<p>Article ID is missing in URL.</p>";
-        return;
-      }
+if (!articleSlug) {
+  container.innerHTML = "<p>Article slug is missing in URL.</p>";
+  return;
+}
 
-      const article = await fetchArticleById(articleId);
+// Assuming you have a function to fetch article by slug
+async function fetchArticleBySlug(slug) {
+  try {
+    const response = await fetch(`/articles/slug/${encodeURIComponent(slug)}`);
+    if (!response.ok) {
+      return null;
+    }
+    return await response.json();
+  } catch (err) {
+    console.error("Fetch error:", err);
+    return null;
+  }
+}
 
-      if (!article) {
-        container.innerHTML = "<p>Article not found.</p>";
-        return;
-      }
+const article = await fetchArticleBySlug(articleSlug);
+
+if (!article) {
+  container.innerHTML = "<p>Article not found.</p>";
+  return;
+}
+
+// Continue to render the article...
+
 
       container.innerHTML = `
         <div class="article-container">
