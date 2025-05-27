@@ -60,6 +60,15 @@
           <button type="button" id="deleteCategoryBtn">Delete Category</button>
         </div>
       </div>
+<!-- Backup Management Panel -->
+<div id="backupPanel" class="admin-panel" style="margin-top: 20px;">
+  <h3>Backup Management</h3>
+
+  <button id="downloadBackupBtn" type="button">Download Backup</button>
+
+  <input type="file" id="restoreFileInput" style="display:none" accept="application/json" />
+  <button id="restoreBackupBtn" type="button">Restore Backup</button>
+</div>
 
       <!-- Admin-only article list -->
       <div id="adminArticles"></div>
