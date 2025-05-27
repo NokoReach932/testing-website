@@ -259,7 +259,7 @@ async function displayArticles() {
       <div class="article-title">${article.title}</div>
       ${article.category ? `<div class="article-category">${article.category}</div>` : ""}
     `;
-    div.onclick = () => (window.location.href = `article.html?id=${article.id}`);
+    div.onclick = () => (window.location.href = `article.html?slug=${article.slug}`);
     articlesList.appendChild(div);
   });
 
