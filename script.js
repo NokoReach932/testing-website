@@ -9,13 +9,13 @@ if (typeof API_BASE === "undefined") {
    Element selectors
 ------------------------------------------------------------------ */
 const writeTab            = document.getElementById("writeTab");
-const viewTab             = document.getElementById("viewTab");     // “Home” in side-menu
+const viewTab             = document.getElementById("viewTab");
 const writeSection        = document.getElementById("writeSection");
 const viewSection         = document.getElementById("viewSection");
 const articlesList        = document.getElementById("articlesList");
 const adminArticles       = document.getElementById("adminArticles");
 const categoryNav         = document.getElementById("categoryNav");
-const form = document.getElementById('articleForm');
+const form                = document.getElementById('articleForm');
 
 const createCategoryBtn   = document.getElementById("createCategoryBtn");
 const deleteCategoryBtn   = document.getElementById("deleteCategoryBtn");
@@ -24,34 +24,18 @@ const deleteCategorySelect= document.getElementById("deleteCategorySelect");
 const categorySelect      = document.getElementById("categorySelect");
 const logo                = document.querySelector(".logo");
 
-// Added: Create a GIF overlay element inside the form or dynamically
-let gifOverlay = document.createElement("div");
-gifOverlay.style.position = "fixed";
-gifOverlay.style.top = "0";
-gifOverlay.style.left = "0";
-gifOverlay.style.width = "100%";
-gifOverlay.style.height = "100%";
-gifOverlay.style.backgroundColor = "rgba(0,0,0,0.5)";
-gifOverlay.style.display = "flex";
-gifOverlay.style.justifyContent = "center";
-gifOverlay.style.alignItems = "center";
-gifOverlay.style.zIndex = "1000";
-gifOverlay.style.display = "none";
+const menuToggle          = document.getElementById('menuToggle');
+const sideMenu            = document.getElementById('sideMenu');
+const overlay             = document.getElementById('overlay');
 
-const loadingImg = document.createElement("img");
-loadingImg.src = "loading.gif";  // Ensure you have this file in your assets
-loadingImg.alt = "Loading...";
-loadingImg.style.width = "100px";
-loadingImg.style.height = "100px";
+const backupBtn           = document.getElementById('backupBtn');
+const restoreBtn          = document.getElementById('restoreBtn');
+const restoreInput        = document.getElementById('restoreInput');
+const backupRestoreStatus = document.getElementById('backupRestoreStatus');
 
-const successImg = document.createElement("img");
-successImg.src = "success.gif";  // Ensure you have this file in your assets
-successImg.alt = "Success!";
-successImg.style.width = "100px";
-successImg.style.height = "100px";
-
-gifOverlay.appendChild(loadingImg);
-document.body.appendChild(gifOverlay);
+const loadingGif          = document.getElementById('loadingGif');
+const successGif          = document.getElementById('successGif');
+const gifContainer        = document.getElementById('gifContainer');
 
 /* ------------------------------------------------------------------
    Logo hover / click
@@ -61,14 +45,13 @@ if (logo) {
     logo.src = logo.getAttribute("data-static");
   });
   logo.addEventListener("click", () => {
-    if (viewTab) viewTab.click();     // same behaviour as “Home”
+    if (viewTab) viewTab.click();
   });
 }
 
 /* ------------------------------------------------------------------
    State
 ------------------------------------------------------------------ */
-// Restore isAdmin state from localStorage on page load
 let isAdmin = localStorage.getItem("isAdmin") === "true";
 const adminUsername       = "admin";
 const adminPassword       = "123";
@@ -76,6 +59,28 @@ const adminPassword       = "123";
 let articleData           = [];
 let filteredArticles      = [];
 let currentCategoryFilter = null;
+
+/* ------------------------------------------------------------------
+   Menu toggle and overlay
+------------------------------------------------------------------ */
+if (menuToggle && sideMenu && overlay) {
+  menuToggle.addEventListener('click', () => {
+    sideMenu.classList.toggle('open');
+    overlay.classList.toggle('active');
+  });
+
+  overlay.addEventListener('click', () => {
+    sideMenu.classList.remove('open');
+    overlay.classList.remove('active');
+  });
+
+  document.querySelectorAll('#sideMenu button').forEach(button => {
+    button.addEventListener('click', () => {
+      sideMenu.classList.remove('open');
+      overlay.classList.remove('active');
+    });
+  });
+}
 
 /* ------------------------------------------------------------------
    Helpers: fetches
@@ -192,220 +197,262 @@ if (createCategoryBtn) {
         headers: { "Content-Type": "application/json" },
         body   : JSON.stringify({ category: newCat }),
       });
-      if (!res.ok) {
-        const d = await res.json();
-        alert(d.message || "Failed to create category");
-      } else {
-        alert("Category created!");
-        newCategoryInput.value = "";
-        await refreshCategoryDropdowns();
-      }
+      if (!res.ok) throw new Error("Failed to create category");
+      newCategoryInput.value = "";
+      await refreshCategoryDropdowns();
+      alert(`Category "${newCat}" created.`);
     } catch (err) {
-      console.error(err);
-      alert("Error creating category");
+      alert("Error creating category: " + err.message);
     }
   };
 }
 
-if (deleteCategoryBtn) {
+if (deleteCategoryBtn && deleteCategorySelect) {
   deleteCategoryBtn.onclick = async () => {
-    if (!deleteCategorySelect) return;
-    const selected = deleteCategorySelect.value;
-    if (!selected) { alert("Please select a category."); return; }
-    if (!confirm(`Delete category "${selected}"?`)) return;
+    const catToDelete = deleteCategorySelect.value;
+    if (!catToDelete) { alert("Please select a category to delete."); return; }
+    if (!confirm(`Are you sure you want to delete category "${catToDelete}"? This cannot be undone.`)) return;
 
     try {
-      const res = await fetch(`${API_BASE}/categories/${encodeURIComponent(selected)}`, { method: "DELETE" });
-      if (!res.ok) {
-        const d = await res.json();
-        alert(d.message || "Failed to delete");
-      } else {
-        alert("Category deleted.");
-        await refreshCategoryDropdowns();
-      }
+      const res = await fetch(`${API_BASE}/categories/${encodeURIComponent(catToDelete)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete category");
+      await refreshCategoryDropdowns();
+      alert(`Category "${catToDelete}" deleted.`);
     } catch (err) {
-      console.error(err);
-      alert("Error deleting category");
+      alert("Error deleting category: " + err.message);
     }
   };
 }
 
 /* ------------------------------------------------------------------
-   Article list / admin list
+   Article display
 ------------------------------------------------------------------ */
-async function displayArticles() {
+function displayArticles() {
   if (!articlesList) return;
-  articlesList.innerHTML = "";
 
-  await fetchArticles();
-
+  // Filter articles by category if applicable
   filteredArticles = currentCategoryFilter
     ? articleData.filter(a => a.category === currentCategoryFilter)
-    : [...articleData];
+    : articleData;
 
-  if (!filteredArticles.length) {
-    articlesList.innerHTML = "<p>No articles available.</p>";
+  // Clear list
+  articlesList.innerHTML = "";
+
+  if (filteredArticles.length === 0) {
+    articlesList.innerHTML = "<p>No articles found.</p>";
     return;
   }
 
+  // Sort newest first
+  filteredArticles.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
   filteredArticles.forEach(article => {
     const div = document.createElement("div");
-    div.className = "article-preview";
+    div.className = "article";
+
+    let imgHTML = "";
+    if (article.imageUrl) {
+      imgHTML = `<img src="${article.imageUrl}" alt="Article image" class="article-image" />`;
+    }
+
     div.innerHTML = `
-      ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
-      <div class="article-title">${article.title}</div>
-      ${article.category ? `<div class="article-category">${article.category}</div>` : ""}
+      <h2>${article.title}</h2>
+      <p><em>${article.createdAt ? new Date(article.createdAt).toLocaleString() : ''}</em></p>
+      ${imgHTML}
+      <p>${article.content}</p>
+      <p><strong>Category:</strong> ${article.category || 'None'}</p>
     `;
-    div.onclick = () => (window.location.href = `article.html?slug=${article.slug}`);
+
     articlesList.appendChild(div);
   });
-
-  updateCategoryNavActive();
 }
 
+/* ------------------------------------------------------------------
+   Admin: Display admin articles with edit/delete
+------------------------------------------------------------------ */
 function displayAdminArticles() {
   if (!adminArticles) return;
   adminArticles.innerHTML = "";
-  articleData.forEach(a => {
-    const d = document.createElement("div");
-    d.innerHTML = `<hr><strong>${a.title}</strong>
-                   <button class="delete-btn" onclick="deleteArticle(${a.id})">Delete</button>`;
-    adminArticles.appendChild(d);
-  });
-}
 
-window.deleteArticle = async id => {
-  if (!isAdmin) return;
-  if (!confirm("Are you sure?")) return;
-  await deleteArticleFromBackend(id);
-  alert("Deleted.");
-  await fetchArticles();
-  await displayArticles();
-  displayAdminArticles();
-};
+  if (!isAdmin) {
+    adminArticles.innerHTML = "<p>Please log in as admin to manage articles.</p>";
+    return;
+  }
 
-/* ------------------------------------------------------------------
-   Helper utilities
------------------------------------------------------------------- */
-function convertImageToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = reject;
-    r.readAsDataURL(file);
-  });
-}
+  // Sort articles newest first
+  const sorted = [...articleData].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
-/* ------------------------------------------------------------------
-   Tab / menu logic
------------------------------------------------------------------- */
-const isIndexPage = /index\.html$/.test(location.pathname) || location.pathname === "/" || location.pathname === "";
+  sorted.forEach(article => {
+    const div = document.createElement("div");
+    div.className = "admin-article";
 
-if (viewTab && writeTab && viewSection && writeSection) {
-  /* Home (viewTab) — new logic: redirect to index if not already there */
-  viewTab.addEventListener("click", async () => {
-    if (!isIndexPage) {
-      location.href = "index.html#view";
-      return;
-    }
-    viewTab.classList.add("active");
-    writeTab.classList.remove("active");
-    viewSection.classList.add("active");
-    writeSection.classList.remove("active");
-    history.pushState({ section: "view" }, "View Articles", "#view");
-    currentCategoryFilter = null;
-    await displayArticles();
+    div.innerHTML = `
+      <h3>${article.title}</h3>
+      <p><em>${article.createdAt ? new Date(article.createdAt).toLocaleString() : ''}</em></p>
+      <p>${article.content}</p>
+      <p><strong>Category:</strong> ${article.category || 'None'}</p>
+      <button class="deleteArticleBtn" data-id="${article.id}">Delete</button>
+    `;
+
+    adminArticles.appendChild(div);
   });
 
-  /* Admin Write — prompt login first on ANY page, then redirect or switch tab */
-  writeTab.addEventListener("click", async () => {
-    if (!isAdmin) {
-      const u = prompt("Enter admin username:");
-      const p = prompt("Enter admin password:");
-      if (u === adminUsername && p === adminPassword) {
-        isAdmin = true;
-        localStorage.setItem("isAdmin", "true");   // Persist login state
-        alert("Welcome, Admin!");
-      } else {
-        alert("Incorrect credentials.");
-        return; // Stop here if login failed
+  // Add event listeners for delete buttons
+  adminArticles.querySelectorAll(".deleteArticleBtn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      const id = e.target.getAttribute("data-id");
+      if (confirm("Delete this article?")) {
+        try {
+          await deleteArticleFromBackend(id);
+          await loadAndDisplayArticles();
+          alert("Article deleted.");
+        } catch (err) {
+          alert("Error deleting article: " + err.message);
+        }
       }
-    }
-
-    if (!isIndexPage) {
-      // After successful login, persist state and redirect to index page #write
-      localStorage.setItem("isAdmin", "true");
-      location.href = "index.html#write";
-      return;
-    }
-
-    // Already on index page, just switch tabs
-    writeTab.classList.add("active");
-    viewTab.classList.remove("active");
-    writeSection.classList.add("active");
-    viewSection.classList.remove("active");
-    history.pushState({ section: "write" }, "Write Article", "#write");
-    currentCategoryFilter = null;
-    await fetchArticles();
-    displayAdminArticles();
+    });
   });
 }
 
 /* ------------------------------------------------------------------
-   Article submission with GIF overlay
+   Load articles and refresh views
+------------------------------------------------------------------ */
+async function loadAndDisplayArticles() {
+  articleData = await fetchArticles();
+  displayArticles();
+  displayAdminArticles();
+  await refreshCategoryDropdowns();
+  updateCategoryNavActive();
+}
+
+/* ------------------------------------------------------------------
+   Article Form submission with GIF loading and success
 ------------------------------------------------------------------ */
 if (form) {
-  form.addEventListener("submit", async e => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const title   = document.getElementById("title").value.trim();
-    const content = document.getElementById("content").value.trim();
-    const file    = document.getElementById("imageUpload").files[0];
-    if (!title || !content) { alert("Title and content are required."); return; }
 
-    // Show loading GIF overlay
-    successImg.style.display = "none";
-    loadingImg.style.display = "block";
-    gifOverlay.style.display = "flex";
+    const formData = new FormData(form);
 
-    const image = file ? await convertImageToBase64(file) : "";
-    const category = categorySelect ? categorySelect.value : "";
-
-    const newArticle = {
-      title, content, image, category,
-      createdAt: new Date().toISOString(),
-    };
+    gifContainer.style.display = 'flex';
+    loadingGif.style.display = 'block';
+    successGif.style.display = 'none';
 
     try {
-      await saveArticleToBackend(newArticle);
-      // Show success GIF after save
-      loadingImg.style.display = "none";
-      successImg.style.display = "block";
+      // If image upload is used, send as FormData (multipart)
+      const response = await fetch(`${API_BASE}/articles`, {
+        method: 'POST',
+        body: formData,  // browser sets content-type automatically
+      });
 
-      // Wait 1.5 seconds to show success GIF, then reset form and hide overlay
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Optional delay
+
+      loadingGif.style.display = 'none';
+      successGif.style.display = 'block';
+
       setTimeout(() => {
-        gifOverlay.style.display = "none";
-        form.reset();
-        fetchArticles().then(() => {
-          displayAdminArticles();
-          if (writeTab) writeTab.click();
-        });
-      }, 1500);
-    } catch (err) {
-      alert("Failed to save article. Please try again.");
-      gifOverlay.style.display = "none";
+        gifContainer.style.display = 'none';
+      }, 2000);
+
+      form.reset();
+
+      await loadAndDisplayArticles();
+    } catch (error) {
+      alert("Error publishing article: " + error.message);
+      gifContainer.style.display = 'none';
     }
   });
 }
 
 /* ------------------------------------------------------------------
-   On load
+   Backup and restore buttons
 ------------------------------------------------------------------ */
-window.onload = async () => {
-  await refreshCategoryDropdowns();
+if (backupBtn && restoreBtn && restoreInput && backupRestoreStatus) {
+  backupBtn.addEventListener('click', () => {
+    backupRestoreStatus.style.color = 'black';
+    backupRestoreStatus.textContent = 'Preparing backup...';
+    fetch(`${API_BASE}/admin/backup`)
+      .then(res => {
+        if (!res.ok) throw new Error('Backup failed');
+        return res.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'backup.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        backupRestoreStatus.style.color = 'green';
+        backupRestoreStatus.textContent = 'Backup downloaded successfully.';
+      })
+      .catch(err => {
+        backupRestoreStatus.style.color = 'red';
+        backupRestoreStatus.textContent = 'Backup error: ' + err.message;
+      });
+  });
 
-  if (location.hash === "#write") {
-    if (writeTab) writeTab.click();
-  } else {
-    if (viewTab) viewTab.click();
-  }
-};
+  restoreBtn.addEventListener('click', () => {
+    restoreInput.click();
+  });
+
+  restoreInput.addEventListener('change', () => {
+    const file = restoreInput.files[0];
+    if (!file) return;
+
+    backupRestoreStatus.style.color = 'black';
+    backupRestoreStatus.textContent = 'Uploading backup...';
+
+    const formData = new FormData();
+    formData.append('backup', file);
+
+    fetch(`${API_BASE}/admin/restore`, {
+      method: 'POST',
+      body: formData,
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.message) {
+        backupRestoreStatus.style.color = 'green';
+        backupRestoreStatus.textContent = 'Restore: ' + data.message;
+      } else {
+        backupRestoreStatus.style.color = 'green';
+        backupRestoreStatus.textContent = 'Restore completed successfully.';
+      }
+    })
+    .catch(err => {
+      backupRestoreStatus.style.color = 'red';
+      backupRestoreStatus.textContent = 'Restore error: ' + err.message;
+    });
+  });
+}
+
+/* ------------------------------------------------------------------
+   Tab switching
+------------------------------------------------------------------ */
+if (writeTab && viewTab && writeSection && viewSection) {
+  writeTab.addEventListener("click", () => {
+    writeSection.classList.add("active");
+    viewSection.classList.remove("active");
+  });
+
+  viewTab.addEventListener("click", () => {
+    viewSection.classList.add("active");
+    writeSection.classList.remove("active");
+  });
+}
+
+/* ------------------------------------------------------------------
+   Initialize page on load
+------------------------------------------------------------------ */
+window.addEventListener("load", async () => {
+  await loadAndDisplayArticles();
+});
