@@ -34,13 +34,13 @@
       <h2>Write New Article</h2>
 
       <!-- Article Submission Form -->
-      <form id="articleForm">
+      <form id="articleForm" enctype="multipart/form-data">
         <select id="categorySelect">
           <option value="" disabled selected>Select Category (Optional)</option>
         </select>
-        <input type="text" id="title" placeholder="Article Title" required />
-        <textarea id="content" rows="8" placeholder="Article Content" required></textarea>
-        <input type="file" id="imageUpload" accept="image/*" />
+<input type="text" id="title" name="title" placeholder="Article Title" required />
+<textarea id="content" name="description" rows="8" placeholder="Article Content" required></textarea>
+<input type="file" id="imageUpload" name="image" accept="image/*" />
         <button type="submit">Publish</button>
       </form>
 
@@ -83,6 +83,9 @@
 
   <script src="script.js"></script>
   <script>
+
+    const form = document.getElementById('articleForm');
+    const imageInput = document.getElementById('imageUpload');
     const menuToggle = document.getElementById('menuToggle');
     const sideMenu = document.getElementById('sideMenu');
     const overlay = document.getElementById('overlay');
@@ -109,28 +112,42 @@
     const gifContainer = document.getElementById('gifContainer');
 
     form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  e.preventDefault();
 
-      gifContainer.style.display = 'block';
-      loadingGif.style.display = 'block';
-      successGif.style.display = 'none';
+  const formData = new FormData(form);
 
-      try {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+  gifContainer.style.display = 'block';
+  loadingGif.style.display = 'block';
+  successGif.style.display = 'none';
 
-        loadingGif.style.display = 'none';
-        successGif.style.display = 'block';
-
-        setTimeout(() => {
-          gifContainer.style.display = 'none';
-        }, 2000);
-
-        form.reset();
-      } catch (error) {
-        alert("Error publishing article.");
-        gifContainer.style.display = 'none';
-      }
+  try {
+    // Send to your backend (adjust URL if needed)
+    const response = await fetch('/articles', {
+      method: 'POST',
+      body: formData,  // no content-type header, browser sets it
     });
+
+    if (!response.ok) {
+      throw new Error('Upload failed');
+    }
+
+    // simulate some delay for gif (optional)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    loadingGif.style.display = 'none';
+    successGif.style.display = 'block';
+
+    setTimeout(() => {
+      gifContainer.style.display = 'none';
+    }, 2000);
+
+    form.reset();
+  } catch (error) {
+    alert("Error publishing article: " + error.message);
+    gifContainer.style.display = 'none';
+  }
+});
+
   </script>
 
   <!-- Backup & Restore Scripts -->
