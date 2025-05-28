@@ -82,73 +82,73 @@
   </div>
 
   <script src="script.js"></script>
+  
   <script>
 
-    const form = document.getElementById('articleForm');
-    const imageInput = document.getElementById('imageUpload');
-    const menuToggle = document.getElementById('menuToggle');
-    const sideMenu = document.getElementById('sideMenu');
-    const overlay = document.getElementById('overlay');
+  const form = document.getElementById('articleForm');
+  const imageInput = document.getElementById('imageUpload');
+  const menuToggle = document.getElementById('menuToggle');
+  const sideMenu = document.getElementById('sideMenu');
+  const overlay = document.getElementById('overlay');
 
-    menuToggle.addEventListener('click', () => {
-      sideMenu.classList.toggle('open');
-      overlay.classList.toggle('active');
-    });
+  menuToggle.addEventListener('click', () => {
+    sideMenu.classList.toggle('open');
+    overlay.classList.toggle('active');
+  });
 
-    overlay.addEventListener('click', () => {
+  overlay.addEventListener('click', () => {
+    sideMenu.classList.remove('open');
+    overlay.classList.remove('active');
+  });
+
+  document.querySelectorAll('#sideMenu button').forEach(button => {
+    button.addEventListener('click', () => {
       sideMenu.classList.remove('open');
       overlay.classList.remove('active');
     });
+  });
 
-    document.querySelectorAll('#sideMenu button').forEach(button => {
-      button.addEventListener('click', () => {
-        sideMenu.classList.remove('open');
-        overlay.classList.remove('active');
+  const loadingGif = document.getElementById('loadingGif');
+  const successGif = document.getElementById('successGif');
+  const gifContainer = document.getElementById('gifContainer');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+
+    gifContainer.style.display = 'block';
+    loadingGif.style.display = 'block';
+    successGif.style.display = 'none';
+
+    try {
+      // Send to your backend (adjust URL if needed)
+      const response = await fetch('/articles', {
+        method: 'POST',
+        body: formData,  // no content-type header, browser sets it automatically
       });
-    });
-    
-    const loadingGif = document.getElementById('loadingGif');
-    const successGif = document.getElementById('successGif');
-    const gifContainer = document.getElementById('gifContainer');
 
-    form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
 
-  const formData = new FormData(form);
+      // simulate some delay for gif (optional)
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-  gifContainer.style.display = 'block';
-  loadingGif.style.display = 'block';
-  successGif.style.display = 'none';
+      loadingGif.style.display = 'none';
+      successGif.style.display = 'block';
 
-  try {
-    // Send to your backend (adjust URL if needed)
-    const response = await fetch('/articles', {
-      method: 'POST',
-      body: formData,  // no content-type header, browser sets it
-    });
+      setTimeout(() => {
+        gifContainer.style.display = 'none';
+      }, 2000);
 
-    if (!response.ok) {
-      throw new Error('Upload failed');
-    }
-
-    // simulate some delay for gif (optional)
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    loadingGif.style.display = 'none';
-    successGif.style.display = 'block';
-
-    setTimeout(() => {
+      form.reset();
+    } catch (error) {
+      alert("Error publishing article: " + error.message);
       gifContainer.style.display = 'none';
-    }, 2000);
-
-    form.reset();
-  } catch (error) {
-    alert("Error publishing article: " + error.message);
-    gifContainer.style.display = 'none';
-  }
-});
-
-  </script>
+    }
+  });
+</script>
 
   <!-- Backup & Restore Scripts -->
   <script>
