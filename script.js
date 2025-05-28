@@ -15,6 +15,7 @@ const viewSection         = document.getElementById("viewSection");
 const articlesList        = document.getElementById("articlesList");
 const adminArticles       = document.getElementById("adminArticles");
 const categoryNav         = document.getElementById("categoryNav");
+const form = document.getElementById('articleForm');
 
 const createCategoryBtn   = document.getElementById("createCategoryBtn");
 const deleteCategoryBtn   = document.getElementById("deleteCategoryBtn");
