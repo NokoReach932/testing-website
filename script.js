@@ -12,7 +12,6 @@ const writeTab            = document.getElementById("writeTab");
 const viewTab             = document.getElementById("viewTab");     // “Home” in side-menu
 const writeSection        = document.getElementById("writeSection");
 const viewSection         = document.getElementById("viewSection");
-const form                = document.getElementById("articleForm");
 const articlesList        = document.getElementById("articlesList");
 const adminArticles       = document.getElementById("adminArticles");
 const categoryNav         = document.getElementById("categoryNav");
