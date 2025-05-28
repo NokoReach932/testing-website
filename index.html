@@ -144,7 +144,7 @@
       backupBtn.addEventListener('click', () => {
         status.style.color = 'black';
         status.textContent = 'Preparing backup...';
-        fetch('/admin/backup')
+        fetch('https://komnottra.com:5000/admin/backup')
           .then(res => {
             if (!res.ok) throw new Error('Backup failed');
             return res.blob();
@@ -181,10 +181,10 @@
         const formData = new FormData();
         formData.append('backup', file);
 
-        fetch('/admin/restore', {
-          method: 'POST',
-          body: formData,
-        })
+     fetch('https://komnottra.com:5000/admin/restore', {
+ method: 'POST',
+  body: formData,
+})
         .then(res => res.json())
         .then(data => {
           if (data.message) {
