@@ -56,7 +56,14 @@ document.body.appendChild(gifOverlay);
 /* ------------------------------------------------------------------
    Logo hover / click
 ------------------------------------------------------------------ */
-
+if (logo) {
+  logo.addEventListener("mouseleave", () => {
+    logo.src = logo.getAttribute("data-static");
+  });
+  logo.addEventListener("click", () => {
+    if (viewTab) viewTab.click();     // same behaviour as “Home”
+  });
+}
 
 /* ------------------------------------------------------------------
    State
