@@ -241,7 +241,19 @@ async function displayArticles() {
   await fetchArticles();
 
   filteredArticles = currentCategoryFilter
-    ? articleData.filter(a => a.category === currentCategoryFilter)
+    ? articleData.filter(article => {
+        let categories = [];
+
+        if (article.category) {
+          if (Array.isArray(article.category)) {
+            categories = [...new Set(article.category.map(c => c.trim()))];
+          } else if (typeof article.category === "string") {
+            categories = article.category.split(",").map(c => c.trim());
+          }
+        }
+
+        return categories.includes(currentCategoryFilter);
+      })
     : [...articleData];
 
   if (!filteredArticles.length) {
@@ -260,17 +272,17 @@ async function displayArticles() {
     // Clean and deduplicate categories
     let cleanCategory = "";
     if (article.category && typeof article.category === "string") {
-  const categories = article.category.split(",").map(c => c.trim());
-  const uniqueCategories = [...new Set(categories)];
-  cleanCategory = uniqueCategories.join(", ");
-} else if (Array.isArray(article.category)) {
-  // If category is an array, deduplicate and join
-  const uniqueCategories = [...new Set(article.category.map(c => c.trim()))];
-  cleanCategory = uniqueCategories.join(", ");
-} else if (article.category) {
-  // If category is something else (like a single value), convert to string
-  cleanCategory = String(article.category);
-}
+      const categories = article.category.split(",").map(c => c.trim());
+      const uniqueCategories = [...new Set(categories)];
+      cleanCategory = uniqueCategories.join(", ");
+    } else if (Array.isArray(article.category)) {
+      // If category is an array, deduplicate and join
+      const uniqueCategories = [...new Set(article.category.map(c => c.trim()))];
+      cleanCategory = uniqueCategories.join(", ");
+    } else if (article.category) {
+      // If category is something else (like a single value), convert to string
+      cleanCategory = String(article.category);
+    }
 
     const categoryHtml = cleanCategory ? `<div class="article-category">ប្រភេទព័ត៌មាន: ${cleanCategory}</div>` : "";
 
@@ -322,123 +334,142 @@ function convertImageToBase64(file) {
 }
 
 /* ------------------------------------------------------------------
-   Tab / menu logic
------------------------------------------------------------------- */
-const isIndexPage = /index\.html$/.test(location.pathname) || location.pathname === "/" || location.pathname === "";
-
-if (viewTab && writeTab && viewSection && writeSection) {
-  /* Home (viewTab) — new logic: redirect to index if not already there */
-  viewTab.addEventListener("click", async () => {
-    if (!isIndexPage) {
-      location.href = "index.html#view";
-      return;
-    }
-    viewTab.classList.add("active");
-    writeTab.classList.remove("active");
-    viewSection.classList.add("active");
-    writeSection.classList.remove("active");
-    history.pushState({ section: "view" }, "View Articles", "#view");
-    currentCategoryFilter = null;
-    await displayArticles();
-  });
-
-  /* Admin Write — prompt login first on ANY page, then redirect or switch tab */
-  writeTab.addEventListener("click", async () => {
-    if (!isAdmin) {
-      const u = prompt("Enter admin username:");
-      const p = prompt("Enter admin password:");
-      if (u === adminUsername && p === adminPassword) {
-        isAdmin = true;
-        localStorage.setItem("isAdmin", "true");   // Persist login state
-        alert("Welcome, Admin!");
-      } else {
-        alert("Incorrect credentials.");
-        return; // Stop here if login failed
-      }
-    }
-
-    if (!isIndexPage) {
-      // After successful login, persist state and redirect to index page #write
-      localStorage.setItem("isAdmin", "true");
-      location.href = "index.html#write";
-      return;
-    }
-
-    // Already on index page, just switch tabs
-    writeTab.classList.add("active");
-    viewTab.classList.remove("active");
-    writeSection.classList.add("active");
-    viewSection.classList.remove("active");
-    history.pushState({ section: "write" }, "Write Article", "#write");
-    currentCategoryFilter = null;
-    await fetchArticles();
-    displayAdminArticles();
-  });
-}
-
-/* ------------------------------------------------------------------
-   Article submission with GIF overlay and real image file upload
+   Article submit handler (with gif overlay and category fix)
 ------------------------------------------------------------------ */
 if (form) {
-  form.addEventListener("submit", async e => {
+  form.onsubmit = async e => {
     e.preventDefault();
 
-    const title = document.getElementById("title").value.trim();
-    const content = document.getElementById("content").value.trim();
-    const file = document.getElementById("imageUpload").files[0];
-    if (!title || !content) { alert("Title and content are required."); return; }
-
     // Show loading GIF overlay
-    successImg.style.display = "none";
     loadingImg.style.display = "block";
-    gifOverlay.style.display = "flex";
+    if (gifOverlay) {
+      gifOverlay.style.display = "flex";
+      successImg.style.display = "none";
+      if (!gifOverlay.contains(loadingImg)) gifOverlay.appendChild(loadingImg);
+      if (gifOverlay.contains(successImg)) gifOverlay.removeChild(successImg);
+    }
 
+    // Construct form data
     const formData = new FormData(form);
-    // Ensure category is included if not part of the form inputs
-    if (categorySelect) formData.append("category", categorySelect.value);
+
+    // Fix category: send as JSON stringified array
+    if (categorySelect && categorySelect.value) {
+      formData.set("category", JSON.stringify([categorySelect.value]));
+    }
+
+    // Handle image conversion (optional, depends on your backend)
+    if (form.image && form.image.files.length > 0) {
+      const base64 = await convertImageToBase64(form.image.files[0]);
+      formData.set("imageBase64", base64);
+    }
 
     try {
-      const response = await fetch(`${API_BASE}/articles`, {
-        method: "POST",
-        body: formData
+      // Convert FormData to JSON to send properly
+      const obj = {};
+      formData.forEach((value, key) => {
+        obj[key] = value;
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert(errorData.message || "Failed to save article");
-        gifOverlay.style.display = "none";
-        return;
+      // Send to backend
+      const res = await fetch(`${API_BASE}/articles`, {
+        method : "POST",
+        headers: { "Content-Type": "application/json" },
+        body   : JSON.stringify(obj),
+      });
+
+      if (!res.ok) {
+        alert("Failed to submit article.");
+        throw new Error("Submission failed");
       }
 
-      // Show success GIF after save
-      loadingImg.style.display = "none";
-      successImg.style.display = "block";
+      // Show success GIF overlay for 3 seconds then hide
+      if (gifOverlay) {
+        loadingImg.style.display = "none";
+        if (!gifOverlay.contains(successImg)) gifOverlay.appendChild(successImg);
+        successImg.style.display = "block";
+      }
 
-      // Wait 1.5 seconds to show success GIF, then reset form and hide overlay
-      setTimeout(() => {
-        gifOverlay.style.display = "none";
-        form.reset();
-        fetchArticles().then(() => {
-          displayAdminArticles();
-          if (writeTab) writeTab.click();
-        });
-      }, 1500);
+      await new Promise(r => setTimeout(r, 3000));
+      if (gifOverlay) gifOverlay.style.display = "none";
+
+      alert("Article submitted successfully!");
+
+      // Reset form and reload articles
+      form.reset();
+      await fetchArticles();
+      await displayArticles();
+      displayAdminArticles();
+
     } catch (err) {
-      alert("Failed to save article. Please try again.");
-      gifOverlay.style.display = "none";
+      console.error(err);
+      alert("Error submitting article.");
+      if (gifOverlay) gifOverlay.style.display = "none";
     }
-  });
+  };
 }
 
 /* ------------------------------------------------------------------
-   On load
+   Admin login/logout
 ------------------------------------------------------------------ */
-window.onload = async () => {
-  await refreshCategoryDropdowns();
+if (writeTab) {
+  writeTab.onclick = () => {
+    if (!isAdmin) {
+      const username = prompt("Enter admin username:");
+      if (username !== adminUsername) {
+        alert("Wrong username");
+        return;
+      }
+      const password = prompt("Enter admin password:");
+      if (password !== adminPassword) {
+        alert("Wrong password");
+        return;
+      }
+      isAdmin = true;
+      localStorage.setItem("isAdmin", "true");
+      alert("Welcome admin!");
+      showAdminFeatures();
+    } else {
+      if (confirm("Logout admin?")) {
+        isAdmin = false;
+        localStorage.setItem("isAdmin", "false");
+        hideAdminFeatures();
+      }
+    }
+  };
+}
 
-  if (location.hash === "#write") {
-    if (writeTab) writeTab.click();
+/* ------------------------------------------------------------------
+   Show / hide admin features
+------------------------------------------------------------------ */
+function showAdminFeatures() {
+  if (writeSection) writeSection.style.display = "block";
+  if (viewSection) viewSection.style.display = "block";
+  if (adminArticles) adminArticles.style.display = "block";
+  if (categoryNav) categoryNav.style.display = "block";
+  if (form) form.style.display = "block";
+  refreshCategoryDropdowns();
+  displayArticles();
+  displayAdminArticles();
+}
+
+function hideAdminFeatures() {
+  if (writeSection) writeSection.style.display = "none";
+  if (adminArticles) adminArticles.style.display = "none";
+  if (categoryNav) categoryNav.style.display = "none";
+  if (form) form.style.display = "none";
+  displayArticles();
+}
+
+/* ------------------------------------------------------------------
+   Initialize page on load
+------------------------------------------------------------------ */
+window.onload = () => {
+  refreshCategoryDropdowns();
+  displayArticles();
+
+  if (isAdmin) {
+    showAdminFeatures();
   } else {
-    if (viewTab) viewTab.click();
+    hideAdminFeatures();
   }
 };
