@@ -352,14 +352,15 @@ if (viewTab && writeTab && viewSection && writeSection) {
 }
 
 /* ------------------------------------------------------------------
-   Article submission with GIF overlay
+   Article submission with GIF overlay and real image file upload
 ------------------------------------------------------------------ */
 if (form) {
   form.addEventListener("submit", async e => {
     e.preventDefault();
-    const title   = document.getElementById("title").value.trim();
+
+    const title = document.getElementById("title").value.trim();
     const content = document.getElementById("content").value.trim();
-    const file    = document.getElementById("imageUpload").files[0];
+    const file = document.getElementById("imageUpload").files[0];
     if (!title || !content) { alert("Title and content are required."); return; }
 
     // Show loading GIF overlay
@@ -367,16 +368,23 @@ if (form) {
     loadingImg.style.display = "block";
     gifOverlay.style.display = "flex";
 
-    const image = file ? await convertImageToBase64(file) : "";
-    const category = categorySelect ? categorySelect.value : "";
-
-    const newArticle = {
-      title, content, image, category,
-      createdAt: new Date().toISOString(),
-    };
+    const formData = new FormData(form);
+    // Ensure category is included if not part of the form inputs
+    if (categorySelect) formData.append("category", categorySelect.value);
 
     try {
-      await saveArticleToBackend(newArticle);
+      const response = await fetch(`${API_BASE}/articles`, {
+        method: "POST",
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(errorData.message || "Failed to save article");
+        gifOverlay.style.display = "none";
+        return;
+      }
+
       // Show success GIF after save
       loadingImg.style.display = "none";
       successImg.style.display = "block";
