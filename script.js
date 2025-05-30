@@ -128,7 +128,8 @@ async function fetchCategories() {
    Category helpers (nav + dropdowns)
 ------------------------------------------------------------------ */
 async function refreshCategoryDropdowns() {
-  const categories = await fetchCategories();
+  const rawCategories = await fetchCategories();
+  const categories = [...new Set(rawCategories)];  // Remove duplicates
 
   if (categorySelect)       categorySelect.innerHTML       = `<option value="" disabled selected>Select Category (Optional)</option>`;
   if (deleteCategorySelect) deleteCategorySelect.innerHTML = `<option disabled selected>Select Category to Delete</option>`;
