@@ -259,11 +259,18 @@ async function displayArticles() {
 
     // Clean and deduplicate categories
     let cleanCategory = "";
-    if (article.category) {
-      const categories = article.category.split(",").map(c => c.trim());
-      const uniqueCategories = [...new Set(categories)];
-      cleanCategory = uniqueCategories.join(", ");
-    }
+    if (article.category && typeof article.category === "string") {
+  const categories = article.category.split(",").map(c => c.trim());
+  const uniqueCategories = [...new Set(categories)];
+  cleanCategory = uniqueCategories.join(", ");
+} else if (Array.isArray(article.category)) {
+  // If category is an array, deduplicate and join
+  const uniqueCategories = [...new Set(article.category.map(c => c.trim()))];
+  cleanCategory = uniqueCategories.join(", ");
+} else if (article.category) {
+  // If category is something else (like a single value), convert to string
+  cleanCategory = String(article.category);
+}
 
     const categoryHtml = cleanCategory ? `<div class="article-category">ប្រភេទព័ត៌មាន: ${cleanCategory}</div>` : "";
 
