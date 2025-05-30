@@ -1,1 +1,1 @@
-/share/:slug  https://komnottra-backend.onrender.com/share/:slug  200
+/share/*  https://komnottra-backend.onrender.com/share/:splat  200
