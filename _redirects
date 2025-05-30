@@ -1,1 +1,2 @@
 /share/*  https://komnottra-backend.onrender.com/share/:splat  200
+/uploads/*  https://komnottra-backend.onrender.com/uploads/:splat  200
