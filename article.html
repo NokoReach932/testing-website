@@ -15,6 +15,22 @@
     .blurred { position: absolute; top: 0; left: 0; filter: blur(20px); transform: scale(1.1); transition: opacity .3s; }
     .full-img { opacity: 0; transition: opacity .3s; position: relative; z-index: 1; }
     .full-img.loaded { opacity: 1; }
+
+    /* Style for share button */
+    #shareFacebookBtn {
+      margin: 1em 0;
+      padding: 0.5em 1em;
+      font-size: 1rem;
+      background-color: #1877F2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+    }
+    #shareFacebookBtn:hover {
+      background-color: #145dbf;
+    }
   </style>
 </head>
 <body>
@@ -98,6 +114,7 @@
         container.innerHTML = `
           <div class="article-container">
             <h1 class="article-title">${article.title}</h1>
+            <button id="shareFacebookBtn" type="button">🔗 Share on Facebook</button>
             ${article.createdAt ? `<p class="article-date">Published: ${formatDate(article.createdAt)}</p>` : ''}
             ${article.category  ? `<p class="article-category">ប្រភេទព័ត៌មាន: ${article.category}</p>` : ''}
             ${fullImg ? `
@@ -107,6 +124,18 @@
               </div>` : ''}
             <div class="article-content">${safeContent}</div>
           </div>`;
+
+        // Facebook share button event
+        const shareFacebookBtn = document.getElementById('shareFacebookBtn');
+        if (shareFacebookBtn) {
+          shareFacebookBtn.addEventListener('click', () => {
+            const shareUrl = `https://komnottra.com/share/${encodeURIComponent(slug)}`;
+            const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+            window.open(facebookShareUrl, 'fbShareWindow', 'height=450, width=550, top=' + 
+                        (window.innerHeight / 2 - 225) + ', left=' + (window.innerWidth / 2 - 275) + 
+                        ', toolbar=0, location=0, menubar=0, directories=0, scrollbars=0');
+          });
+        }
       } catch (err) {
         console.error(err);
         container.innerHTML = '<p>Article not found.</p>';
