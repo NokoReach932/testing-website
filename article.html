@@ -109,16 +109,22 @@
       }
 
       const safeContent = DOMPurify.sanitize(article.content || "");
+      
+const baseUrl = "https://komnottra-backend.onrender.com";
+
+const fullImageUrl = article.imageUrl
+  ? (article.imageUrl.startsWith("http") ? article.imageUrl : baseUrl + article.imageUrl)
+  : null;
 
       container.innerHTML = `
-        <div class="article-container">
-          <h1 class="article-title">${article.title}</h1>
-          ${article.createdAt ? `<p class="article-date">Published Date: ${formatDate(article.createdAt)}</p>` : ""}
-          ${article.category ? `<p class="article-category">ប្រភេទព័ត៌មាន: ${article.category}</p>` : ""}
-          ${article.imageUrl ? `<img src="${article.imageUrl}" alt="Article Image" loading="lazy" />` : ""}
-          <div class="article-content">${safeContent}</div>
-        </div>
-      `;
+  <div class="article-container">
+    <h1 class="article-title">${article.title}</h1>
+    ${article.createdAt ? `<p class="article-date">Published Date: ${formatDate(article.createdAt)}</p>` : ""}
+    ${article.category ? `<p class="article-category">ប្រភេទព័ត៌មាន: ${article.category}</p>` : ""}
+    ${fullImageUrl ? `<img src="${fullImageUrl}" alt="Article Image" loading="lazy" />` : ""}
+    <div class="article-content">${safeContent}</div>
+  </div>
+`;
     }
 
     window.onload = displayArticle;
