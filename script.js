@@ -257,12 +257,22 @@ async function displayArticles() {
       ? (article.imageUrl.startsWith("http") ? article.imageUrl : baseUrl + article.imageUrl)
       : null;
 
+    // Clean and deduplicate categories
+    let cleanCategory = "";
+    if (article.category) {
+      const categories = article.category.split(",").map(c => c.trim());
+      const uniqueCategories = [...new Set(categories)];
+      cleanCategory = uniqueCategories.join(", ");
+    }
+
+    const categoryHtml = cleanCategory ? `<div class="article-category">ប្រភេទព័ត៌មាន: ${cleanCategory}</div>` : "";
+
     const div = document.createElement("div");
     div.className = "article-preview";
     div.innerHTML = `
       ${fullImageUrl ? `<img src="${fullImageUrl}" alt="Article Image">` : ""}
       <div class="article-title">${article.title}</div>
-      ${article.category ? `<div class="article-category">${article.category}</div>` : ""}
+      ${categoryHtml}
     `;
     div.onclick = () => (window.location.href = `article.html?slug=${article.slug}`);
     articlesList.appendChild(div);
