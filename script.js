@@ -249,10 +249,17 @@ async function displayArticles() {
   }
 
   filteredArticles.forEach(article => {
+    const baseUrl = API_BASE || "https://komnottra-backend.onrender.com";
+
+    // Use article.imageUrl, prepend baseUrl if relative path
+    const fullImageUrl = article.imageUrl
+      ? (article.imageUrl.startsWith("http") ? article.imageUrl : baseUrl + article.imageUrl)
+      : null;
+
     const div = document.createElement("div");
     div.className = "article-preview";
     div.innerHTML = `
-      ${article.image ? `<img src="${article.image}" alt="Article Image">` : ""}
+      ${fullImageUrl ? `<img src="${fullImageUrl}" alt="Article Image">` : ""}
       <div class="article-title">${article.title}</div>
       ${article.category ? `<div class="article-category">${article.category}</div>` : ""}
     `;
