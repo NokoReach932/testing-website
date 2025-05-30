@@ -6,14 +6,14 @@
   <title>Komnottra</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.3/dist/purify.min.js" defer></script>
 </head>
 <body>
   <header>
-      <img src="logo.png" data-static="logo.png" alt="Komnottra Logo" class="logo" />
-      <div id="menuToggle" class="menu-toggle">&#9776;</div>
+    <img src="logo.png" data-static="logo.png" alt="Komnottra Logo" class="logo" />
+    <div id="menuToggle" class="menu-toggle" aria-label="Toggle Menu">&#9776;</div>
   </header>
 
-  <!-- Categories Row (Navigation-style menu) -->
   <div id="categoryNav" class="category-nav">
     <!-- JavaScript will populate this section with category buttons -->
   </div>
@@ -33,7 +33,6 @@
     <section id="writeSection" class="section">
       <h2>Write New Article</h2>
 
-      <!-- Article Submission Form -->
       <form id="articleForm" enctype="multipart/form-data">
         <select id="categorySelect" name="category">
           <option value="" disabled selected>Select Category (Optional)</option>
@@ -44,10 +43,8 @@
         <button type="submit">Publish</button>
       </form>
 
-      <!-- Category Management Panel -->
       <div id="categoryPanel" class="admin-panel">
         <h3>Category Management</h3>
-
         <div class="category-form">
           <input type="text" id="newCategory" placeholder="New Category Name" />
           <button type="button" id="createCategoryBtn">Create Category</button>
@@ -61,7 +58,6 @@
         </div>
       </div>
 
-      <!-- Backup & Restore Panel -->
       <div id="backupRestorePanel" class="admin-panel" style="margin-top: 20px;">
         <h3>Backup & Restore Data</h3>
         <button id="backupBtn" style="margin-right: 10px;">Backup Data</button>
@@ -70,12 +66,10 @@
         <p id="backupRestoreStatus" style="margin-top: 10px; color: green;"></p>
       </div>
 
-      <!-- Admin-only article list -->
       <div id="adminArticles"></div>
     </section>
   </div>
 
-  <!-- Loading and Success GIF Containers -->
   <div id="gifContainer" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; text-align: center;">
     <img id="loadingGif" src="publishing.gif" alt="Loading..." style="display: none; width: 150px;" />
     <img id="successGif" src="success.gif" alt="Success!" style="display: none; width: 150px;" />
@@ -104,11 +98,8 @@
         overlay.classList.remove('active');
       });
     });
-
-    // Gif handling moved into script.js, no duplicate needed here
   </script>
 
-  <!-- Backup & Restore Scripts -->
   <script>
     (function() {
       const backupBtn = document.getElementById('backupBtn');
