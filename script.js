@@ -377,7 +377,6 @@ if (form) {
 
     const formData = new FormData(form);
     // Ensure category is included if not part of the form inputs
-    if (categorySelect) formData.append("category", categorySelect.value);
 
     try {
       const response = await fetch(`${API_BASE}/articles`, {
