@@ -6,11 +6,12 @@
   <title>Komnottra - Article</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.3/dist/purify.min.js" defer></script>
 </head>
 <body>
   <header>
     <img src="logo.png" data-animated="logo.gif" data-static="logo.png" alt="Komnottra Logo" class="logo" />
-    <div id="menuToggle" class="menu-toggle">&#9776;</div>
+    <div id="menuToggle" class="menu-toggle" aria-label="Toggle Menu">&#9776;</div>
   </header>
 
   <div id="categoryNav" class="category-nav">
@@ -70,17 +71,6 @@
       loadCategories();
     }
 
-    async function fetchArticleById(id) {
-      try {
-        const res = await fetch(`${API_BASE}/articles/${id}`);
-        if (!res.ok) throw new Error("Article not found");
-        return await res.json();
-      } catch (err) {
-        console.error("Failed to fetch article", err);
-        return null;
-      }
-    }
-
     function formatDate(dateString) {
       const date = new Date(dateString);
       const options = { hour: "numeric", minute: "numeric", hour12: true };
@@ -90,49 +80,43 @@
     }
 
     async function displayArticle() {
-     const urlParams = new URLSearchParams(window.location.search);
-const articleSlug = urlParams.get("slug");
+      const urlParams = new URLSearchParams(window.location.search);
+      const articleSlug = urlParams.get("slug");
 
-const container = document.getElementById("articleContainer");
+      const container = document.getElementById("articleContainer");
 
-if (!articleSlug) {
-  container.innerHTML = "<p>Article slug is missing in URL.</p>";
-  return;
-}
+      if (!articleSlug) {
+        container.innerHTML = "<p>Article slug is missing in URL.</p>";
+        return;
+      }
 
-// Assuming you have a function to fetch article by slug
-async function fetchArticleBySlug(slug) {
-  try {
-    // Add API_BASE before the URL
-    const response = await fetch(`${API_BASE}/articles/slug/${encodeURIComponent(slug)}`);
-    if (!response.ok) {
-      return null;
-    }
-    return await response.json();
-  } catch (err) {
-    console.error("Fetch error:", err);
-    return null;
-  }
-}
+      async function fetchArticleBySlug(slug) {
+        try {
+          const response = await fetch(`${API_BASE}/articles/slug/${encodeURIComponent(slug)}`);
+          if (!response.ok) return null;
+          return await response.json();
+        } catch (err) {
+          console.error("Fetch error:", err);
+          return null;
+        }
+      }
 
+      const article = await fetchArticleBySlug(articleSlug);
 
-const article = await fetchArticleBySlug(articleSlug);
+      if (!article) {
+        container.innerHTML = "<p>Article not found.</p>";
+        return;
+      }
 
-if (!article) {
-  container.innerHTML = "<p>Article not found.</p>";
-  return;
-}
-
-// Continue to render the article...
-
+      const safeContent = DOMPurify.sanitize(article.content || "");
 
       container.innerHTML = `
         <div class="article-container">
           <h1 class="article-title">${article.title}</h1>
           ${article.createdAt ? `<p class="article-date">Published Date: ${formatDate(article.createdAt)}</p>` : ""}
           ${article.category ? `<p class="article-category">ប្រភេទព័ត៌មាន: ${article.category}</p>` : ""}
-          ${article.image ? `<img src="${article.image}" alt="Article Image" />` : ""}
-          <div class="article-content">${article.content}</div>
+          ${article.imageUrl ? `<img src="${article.imageUrl}" alt="Article Image" loading="lazy" />` : ""}
+          <div class="article-content">${safeContent}</div>
         </div>
       `;
     }
