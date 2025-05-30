@@ -261,7 +261,10 @@ async function displayArticles() {
     div.innerHTML = `
       ${fullImageUrl ? `<img src="${fullImageUrl}" alt="Article Image">` : ""}
       <div class="article-title">${article.title}</div>
-      ${article.category ? `<div class="article-category">${article.category}</div>` : ""}
+      ${article.category ? `<div class="article-category">${
+  Array.isArray(article.category) ? [...new Set(article.category)].join(", ") : article.category
+}</div>` : ""}
+
     `;
     div.onclick = () => (window.location.href = `article.html?slug=${article.slug}`);
     articlesList.appendChild(div);
