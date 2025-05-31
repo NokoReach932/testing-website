@@ -15,9 +15,7 @@
     <div id="menuToggle" class="menu-toggle" aria-label="Toggle Menu">&#9776;</div>
   </header>
 
-  <div id="categoryNav" class="category-nav">
-    <!-- JavaScript will populate this section with category buttons -->
-  </div>
+  <div id="categoryNav" class="category-nav"></div>
 
   <div id="overlay" class="overlay"></div>
 
@@ -32,25 +30,32 @@
     </section>
 
     <section id="writeSection" class="section">
-      <h2>Write New Article</h2>
+      <h2 id="formHeading">Write New Article</h2>
 
+      <!-- ✨ UPDATED FORM -->
       <form id="articleForm" enctype="multipart/form-data">
         <select id="categorySelect" name="category">
           <option value="" disabled selected>Select Category (Optional)</option>
         </select>
+
         <input type="text" id="title" name="title" placeholder="Article Title" required />
         <textarea id="content" name="content" rows="8" placeholder="Article Content" required></textarea>
+
         <input type="file" id="imageUpload" name="image" accept="image/*" />
-        <button type="submit">Publish</button>
+        <!-- image preview + remove btn -->
+        <img id="imagePreview" alt="Image preview" style="max-height:120px;display:none;margin-top:8px;" />
+        <button type="button" id="removeImageBtn" style="display:none;margin-left:6px;">Remove Image</button>
+
+        <button type="submit" id="submitBtn">Publish</button>
       </form>
 
+      <!-- Category admin -->
       <div id="categoryPanel" class="admin-panel">
         <h3>Category Management</h3>
         <div class="category-form">
           <input type="text" id="newCategory" placeholder="New Category Name" />
           <button type="button" id="createCategoryBtn">Create Category</button>
         </div>
-
         <div class="category-delete">
           <select id="deleteCategorySelect">
             <option disabled selected>Select Category to Delete</option>
@@ -59,8 +64,9 @@
         </div>
       </div>
 
+      <!-- Backup / restore -->
       <div id="backupRestorePanel" class="admin-panel" style="margin-top: 20px;">
-        <h3>Backup & Restore Data</h3>
+        <h3>Backup &amp; Restore Data</h3>
         <button id="backupBtn" style="margin-right: 10px;">Backup Data</button>
         <input type="file" id="restoreInput" accept=".zip" style="display:none" />
         <button id="restoreBtn">Restore Data</button>
@@ -71,101 +77,79 @@
     </section>
   </div>
 
-  <div id="gifContainer" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; text-align: center;">
-    <img id="loadingGif" src="publishing.gif" alt="Loading..." style="display: none; width: 150px;" />
-    <img id="successGif" src="success.gif" alt="Success!" style="display: none; width: 150px;" />
+  <!-- GIF overlay for publishing / success -->
+  <div id="gifContainer" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;text-align:center;">
+    <img id="loadingGif" src="publishing.gif" alt="Loading..." style="display:none;width:150px;" />
+    <img id="successGif" src="success.gif" alt="Success!" style="display:none;width:150px;" />
   </div>
 
   <script src="script.js"></script>
 
+  <!-- existing inline JS (side-menu toggle & backup/restore) remains unchanged -->
   <script>
     const menuToggle = document.getElementById('menuToggle');
-    const sideMenu = document.getElementById('sideMenu');
-    const overlay = document.getElementById('overlay');
+    const sideMenu   = document.getElementById('sideMenu');
+    const overlay    = document.getElementById('overlay');
 
     menuToggle.addEventListener('click', () => {
       sideMenu.classList.toggle('open');
       overlay.classList.toggle('active');
     });
-
     overlay.addEventListener('click', () => {
       sideMenu.classList.remove('open');
       overlay.classList.remove('active');
     });
-
-    document.querySelectorAll('#sideMenu button').forEach(button => {
-      button.addEventListener('click', () => {
+    document.querySelectorAll('#sideMenu button').forEach(btn => {
+      btn.addEventListener('click', () => {
         sideMenu.classList.remove('open');
         overlay.classList.remove('active');
       });
     });
   </script>
 
+  <!-- backup / restore inline script kept as-is -->
   <script>
-    (function() {
-      const backupBtn = document.getElementById('backupBtn');
+    (function () {
+      const backupBtn  = document.getElementById('backupBtn');
       const restoreBtn = document.getElementById('restoreBtn');
-      const restoreInput = document.getElementById('restoreInput');
-      const status = document.getElementById('backupRestoreStatus');
+      const restoreInp = document.getElementById('restoreInput');
+      const status     = document.getElementById('backupRestoreStatus');
 
       backupBtn.addEventListener('click', () => {
         status.style.color = 'black';
         status.textContent = 'Preparing backup...';
-        fetch("https://komnottra-backend.onrender.com/admin/backup")
-          .then(res => {
-            if (!res.ok) throw new Error('Backup failed');
-            return res.blob();
-          })
+        fetch('https://komnottra-backend.onrender.com/admin/backup')
+          .then(r => { if (!r.ok) throw new Error('Backup failed'); return r.blob(); })
           .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
+            const url = URL.createObjectURL(blob);
+            const a   = document.createElement('a');
+            a.href     = url;
             a.download = 'backup.zip';
             document.body.appendChild(a);
             a.click();
             a.remove();
-            window.URL.revokeObjectURL(url);
+            URL.revokeObjectURL(url);
             status.style.color = 'green';
             status.textContent = 'Backup downloaded successfully.';
           })
-          .catch(err => {
-            status.style.color = 'red';
-            status.textContent = 'Backup error: ' + err.message;
-          });
+          .catch(err => { status.style.color = 'red'; status.textContent = 'Backup error: ' + err.message; });
       });
 
-      restoreBtn.addEventListener('click', () => {
-        restoreInput.click();
-      });
-
-      restoreInput.addEventListener('change', () => {
-        const file = restoreInput.files[0];
+      restoreBtn.addEventListener('click', () => restoreInp.click());
+      restoreInp.addEventListener('change', () => {
+        const file = restoreInp.files[0];
         if (!file) return;
-
         status.style.color = 'black';
         status.textContent = 'Uploading backup...';
-
-        const formData = new FormData();
-        formData.append('backup', file);
-
-        fetch('https://komnottra-backend.onrender.com/admin/restore', {
-          method: 'POST',
-          body: formData,
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.message) {
+        const fd = new FormData();
+        fd.append('backup', file);
+        fetch('https://komnottra-backend.onrender.com/admin/restore', { method: 'POST', body: fd })
+          .then(r => r.json())
+          .then(data => {
             status.style.color = 'green';
-            status.textContent = 'Restore: ' + data.message;
-          } else {
-            status.style.color = 'green';
-            status.textContent = 'Restore completed successfully.';
-          }
-        })
-        .catch(err => {
-          status.style.color = 'red';
-          status.textContent = 'Restore error: ' + err.message;
-        });
+            status.textContent = 'Restore: ' + (data.message || 'completed successfully.');
+          })
+          .catch(err => { status.style.color = 'red'; status.textContent = 'Restore error: ' + err.message; });
       });
     })();
   </script>
