@@ -424,9 +424,9 @@ if (form) {
 window.onload = async () => {
   await refreshCategoryDropdowns();
 
-  if (location.hash === "#write") {
-    if (writeTab) writeTab.click();
-  } else {
-    if (viewTab) viewTab.click();
+  if (location.hash === "#write" && writeTab && writeTab.style.display !== "none") {
+    writeTab.click();
+  } else if (viewTab) {
+    viewTab.click();
   }
 };
