@@ -1,148 +1,174 @@
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Komnottra - Article</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="favicon.ico" type="image/x-icon" />
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.3/dist/purify.min.js" defer></script>
-
-  <!-- Blur‑up image styles -->
+  <title>Article View</title>
   <style>
-    .image-wrapper { position: relative; overflow: hidden; }
-    .image-wrapper img { display: block; width: 100%; height: auto; }
-    .blurred { position: absolute; top: 0; left: 0; filter: blur(20px); transform: scale(1.1); transition: opacity .3s; }
-    .full-img { opacity: 0; transition: opacity .3s; position: relative; z-index: 1; }
-    .full-img.loaded { opacity: 1; }
-
-    /* Style for share button */
-    #shareFacebookBtn {
-      margin: 1em 0;
-      padding: 0.5em 1em;
-      font-size: 1rem;
-      background-color: #1877F2;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      user-select: none;
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 1rem auto;
+      padding: 0 1rem;
+      line-height: 1.5;
     }
-    #shareFacebookBtn:hover {
-      background-color: #145dbf;
+    .content img {
+      max-width: 100%;
+      height: auto;
+      margin: 1rem 0;
+    }
+    #relatedArticlesSection {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ccc;
+    }
+    #relatedArticlesList .article-preview {
+      cursor: pointer;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+    #relatedArticlesList .article-preview:hover {
+      background-color: #f0f0f0;
+    }
+    #relatedArticlesList .article-preview img {
+      max-width: 100px;
+      max-height: 60px;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+    #relatedArticlesList .article-title {
+      display: inline-block;
+      vertical-align: middle;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <header>
-    <img src="logo.png" data-animated="logo.gif" data-static="logo.png" alt="Komnottra Logo" class="logo" />
-    <div id="menuToggle" class="menu-toggle" aria-label="Toggle Menu">&#9776;</div>
-  </header>
+  <a href="index.html">← Back to articles</a>
 
-  <div id="categoryNav" class="category-nav"></div>
-  <div id="overlay" class="overlay"></div>
+  <h1 id="articleTitle">Loading...</h1>
+  <div class="content" id="articleContent"></div>
 
-  <nav id="sideMenu" class="side-menu">
-    <button id="viewTab" class="active">Home</button>
-    <button id="writeTab">Admin Write</button>
-  </nav>
-
-  <div class="container">
-    <section id="viewSection" class="section active">
-      <div id="articleContainer"><p>Loading article...</p></div>
-      <a href="index.html" class="back-link">← ត្រឡប់ទៅទំព័រដើម</a>
-    </section>
-
-    <section id="writeSection" class="section">
-      <h2>Write New Article</h2>
-      <p>Admin panel not available on this page.</p>
-    </section>
+  <!-- Related Articles Section: below article content -->
+  <div id="relatedArticlesSection" style="display:none;">
+    <h3>Related Articles</h3>
+    <div id="relatedArticlesList"></div>
   </div>
-
-  <script src="script.js"></script>
 
   <script>
     const API_BASE = "https://komnottra-backend.onrender.com";
 
-    // Menu toggle logic
-    const menuToggle = document.getElementById('menuToggle');
-    const sideMenu   = document.getElementById('sideMenu');
-    const overlay    = document.getElementById('overlay');
-
-    menuToggle.addEventListener('click', () => {
-      sideMenu.classList.toggle('open');
-      overlay.classList.toggle('active');
-    });
-
-    overlay.addEventListener('click', () => {
-      sideMenu.classList.remove('open');
-      overlay.classList.remove('active');
-    });
-
-    document.querySelectorAll('#sideMenu button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        sideMenu.classList.remove('open');
-        overlay.classList.remove('active');
-      });
-    });
-
-    if (typeof loadCategories === 'function') loadCategories();
-
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      const opts = { hour: 'numeric', minute: 'numeric', hour12: true };
-      const d    = `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}/${date.getFullYear()}`;
-      const t    = date.toLocaleTimeString([], opts);
-      return `${d} ${t}`;
-    }
-
-    async function displayArticle() {
-      const slug = new URLSearchParams(window.location.search).get('slug');
-      const container = document.getElementById('articleContainer');
-      if (!slug) { container.innerHTML = '<p>Article slug is missing.</p>'; return; }
-
+    async function fetchArticleBySlug(slug) {
       try {
-        const res = await fetch(`${API_BASE}/articles/slug/${encodeURIComponent(slug)}`);
-        if (!res.ok) throw new Error('Article not found');
-        const article = await res.json();
-
-        const safeContent = DOMPurify.sanitize(article.content || '');
-        const baseUrl     = API_BASE;
-        const fullImg     = article.imageUrl ? (article.imageUrl.startsWith('http') ? article.imageUrl : baseUrl + article.imageUrl) : null;
-        const blurImg     = article.blurDataUrl || '';
-
-        container.innerHTML = `
-          <div class="article-container">
-            <h1 class="article-title">${article.title}</h1>
-            <button id="shareFacebookBtn" type="button">🔗 Share on Facebook</button>
-            ${article.createdAt ? `<p class="article-date">Published: ${formatDate(article.createdAt)}</p>` : ''}
-            ${article.category  ? `<p class="article-category">ប្រភេទព័ត៌មាន: ${article.category}</p>` : ''}
-            ${fullImg ? `
-              <div class="image-wrapper">
-                <img src="${blurImg}" class="blurred" aria-hidden="true" />
-                <img src="${fullImg}" alt="Article Image" class="full-img" loading="lazy" onload="this.classList.add('loaded')" />
-              </div>` : ''}
-            <div class="article-content">${safeContent}</div>
-          </div>`;
-
-        // Facebook share button event
-        const shareFacebookBtn = document.getElementById('shareFacebookBtn');
-        if (shareFacebookBtn) {
-          shareFacebookBtn.addEventListener('click', () => {
-            const shareUrl = `https://komnottra.com/share/${encodeURIComponent(slug)}`;
-            const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-            window.open(facebookShareUrl, 'fbShareWindow', 'height=450, width=550, top=' + 
-                        (window.innerHeight / 2 - 225) + ', left=' + (window.innerWidth / 2 - 275) + 
-                        ', toolbar=0, location=0, menubar=0, directories=0, scrollbars=0');
-          });
-        }
+        const res = await fetch(`${API_BASE}/articles?slug=${encodeURIComponent(slug)}`);
+        const articles = await res.json();
+        return articles.length > 0 ? articles[0] : null;
       } catch (err) {
-        console.error(err);
-        container.innerHTML = '<p>Article not found.</p>';
+        console.error("Error fetching article:", err);
+        return null;
       }
     }
 
-    window.onload = displayArticle;
+    async function fetchArticles() {
+      try {
+        const res = await fetch(`${API_BASE}/articles`);
+        return await res.json();
+      } catch (err) {
+        console.error("Failed to fetch articles", err);
+        return [];
+      }
+    }
+
+    function getSlugFromQuery() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("slug");
+    }
+
+    function renderArticle(article) {
+      document.getElementById("articleTitle").textContent = article.title;
+      document.getElementById("articleContent").innerHTML = article.content;
+    }
+
+    function renderRelatedArticles(articles, currentArticleId) {
+      const relatedSection = document.getElementById("relatedArticlesSection");
+      const relatedList = document.getElementById("relatedArticlesList");
+      relatedList.innerHTML = "";
+
+      if (articles.length === 0) {
+        relatedList.innerHTML = "<p>No related articles found.</p>";
+        relatedSection.style.display = "block";
+        return;
+      }
+
+      articles.forEach(article => {
+        if(article.id === currentArticleId) return; // skip current article
+
+        const div = document.createElement("div");
+        div.className = "article-preview";
+
+        // Show image if available
+        let imgHTML = "";
+        if(article.imageUrl) {
+          const fullImageUrl = article.imageUrl.startsWith("http")
+            ? article.imageUrl
+            : API_BASE + article.imageUrl;
+          imgHTML = `<img src="${fullImageUrl}" alt="Related article image" />`;
+        }
+
+        div.innerHTML = `${imgHTML}<span class="article-title">${article.title}</span>`;
+        div.onclick = () => {
+          window.location.href = `article.html?slug=${article.slug}`;
+        };
+
+        relatedList.appendChild(div);
+      });
+
+      relatedSection.style.display = "block";
+    }
+
+    window.onload = async () => {
+      const slug = getSlugFromQuery();
+      if (!slug) {
+        document.getElementById("articleTitle").textContent = "Article not found.";
+        return;
+      }
+
+      const article = await fetchArticleBySlug(slug);
+      if (!article) {
+        document.getElementById("articleTitle").textContent = "Article not found.";
+        return;
+      }
+
+      renderArticle(article);
+
+      // Fetch all articles and filter related by category (exact match)
+      const allArticles = await fetchArticles();
+
+      let relatedArticles = [];
+      if (article.category) {
+        // Category might be a string or array — normalize to array
+        const currentCategories = Array.isArray(article.category)
+          ? article.category
+          : [article.category];
+
+        relatedArticles = allArticles.filter(a => {
+          if (a.id === article.id) return false; // exclude current
+          if (!a.category) return false;
+
+          const otherCategories = Array.isArray(a.category)
+            ? a.category
+            : [a.category];
+
+          // Check if categories intersect
+          return currentCategories.some(cat => otherCategories.includes(cat));
+        });
+      }
+
+      renderRelatedArticles(relatedArticles, article.id);
+    };
   </script>
 </body>
 </html>
