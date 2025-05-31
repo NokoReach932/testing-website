@@ -372,6 +372,14 @@ button:hover {
   text-align: justify;
 }
 
+.back-link {
+  color: aliceblue;
+  background: gray;
+  display: inline-block;
+  padding: 3px;
+  border-radius: 10px;
+}
+
 @media (max-width: 600px) {
   /* your existing or additional styles for mobile article page */
 }
