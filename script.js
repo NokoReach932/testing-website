@@ -54,6 +54,12 @@ gifOverlay.appendChild(loadingImg);
 document.body.appendChild(gifOverlay);
 
 /* ------------------------------------------------------------------
+   Page type detection
+------------------------------------------------------------------ */
+const isIndexPage = /index\.html$/.test(location.pathname) || location.pathname === "/" || location.pathname === "";
+const isAdminPage = /admin\.html$/.test(location.pathname);
+
+/* ------------------------------------------------------------------
    Logo hover / click
 ------------------------------------------------------------------ */
 if (logo) {
@@ -307,11 +313,9 @@ function convertImageToBase64(file) {
 }
 
 /* ------------------------------------------------------------------
-   Tab / menu logic
+   Tab / menu logic for index.html only
 ------------------------------------------------------------------ */
-const isIndexPage = /index\.html$/.test(location.pathname) || location.pathname === "/" || location.pathname === "";
-
-if (viewTab && writeTab && viewSection && writeSection) {
+if (isIndexPage && viewTab && writeTab && viewSection && writeSection) {
   /* Home (viewTab) — new logic: redirect to index if not already there */
   viewTab.addEventListener("click", async () => {
     if (!isIndexPage) {
@@ -363,66 +367,84 @@ if (viewTab && writeTab && viewSection && writeSection) {
 
 /* ------------------------------------------------------------------
    Article submission with GIF overlay and real image file upload
+   For index.html only
 ------------------------------------------------------------------ */
-if (form) {
+if (isIndexPage && form) {
   form.addEventListener("submit", async e => {
     e.preventDefault();
 
-    const title = document.getElementById("title").value.trim();
-    const content = document.getElementById("content").value.trim();
-    const file = document.getElementById("imageUpload").files[0];
-    if (!title || !content) { alert("Title and content are required."); return; }
+    const title = form.title.value.trim();
+    const body = form.body.value.trim();
+    const category = form.category.value || null;
+    const imageFile = form.image.files[0];
 
-    // Show loading GIF overlay
-    successImg.style.display = "none";
+    if (!title || !body) {
+      alert("Title and body are required.");
+      return;
+    }
+
+    gifOverlay.style.display = "flex";   // Show loading GIF
     loadingImg.style.display = "block";
-    gifOverlay.style.display = "flex";
-
-    const formData = new FormData(form);
-    // Ensure category is included if not part of the form inputs
+    successImg.style.display = "none";
 
     try {
-      const response = await fetch(`${API_BASE}/articles`, {
-        method: "POST",
-        body: formData
-      });
+      let imageUrl = "";
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert(errorData.message || "Failed to save article");
-        gifOverlay.style.display = "none";
-        return;
+      if (imageFile) {
+        // Convert image file to base64 or upload directly depending on your backend requirements
+        // Here we convert to base64 and send it inline (if your backend supports it)
+        imageUrl = await convertImageToBase64(imageFile);
       }
 
-      // Show success GIF after save
+      // Compose article data
+      const article = {
+        title,
+        body,
+        category,
+        imageUrl,
+        id: Date.now(),
+        slug: title.toLowerCase().replace(/\s+/g, "-"),
+      };
+
+      await saveArticleToBackend(article);
+
+      // Show success GIF
       loadingImg.style.display = "none";
       successImg.style.display = "block";
 
-      // Wait 1.5 seconds to show success GIF, then reset form and hide overlay
-      setTimeout(() => {
-        gifOverlay.style.display = "none";
-        form.reset();
-        fetchArticles().then(() => {
-          displayAdminArticles();
-          if (writeTab) writeTab.click();
-        });
-      }, 1500);
+      // Wait a bit before hiding GIF overlay
+      await new Promise(r => setTimeout(r, 1500));
+      gifOverlay.style.display = "none";
+
+      alert("Article submitted!");
+
+      // Clear form
+      form.reset();
+      await fetchArticles();
+      displayAdminArticles();
+      displayArticles();
     } catch (err) {
-      alert("Failed to save article. Please try again.");
+      console.error(err);
+      alert("Failed to submit article");
       gifOverlay.style.display = "none";
     }
   });
 }
 
 /* ------------------------------------------------------------------
-   On load
+   Window onload
 ------------------------------------------------------------------ */
 window.onload = async () => {
   await refreshCategoryDropdowns();
 
-  if (location.hash === "#write") {
-    if (writeTab) writeTab.click();
-  } else {
-    if (viewTab) viewTab.click();
+  if (isIndexPage) {
+    if (location.hash === "#write") {
+      if (writeTab) writeTab.click();
+    } else {
+      if (viewTab) viewTab.click();
+    }
+  } else if (isAdminPage) {
+    await fetchArticles();
+    displayAdminArticles();
   }
 };
