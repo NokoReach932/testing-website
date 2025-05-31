@@ -322,12 +322,13 @@
             : [article.category];
 
           const relatedArticles = allArticles.filter(a => {
-            if(a.id === article.id) return false;
-            if(!a.category) return false;
+  if (a.id === article.id) return false;
+  if (!a.category) return false;
 
-            const otherCategories = Array.isArray(a.category) ? a.category : [a.category];
-            return currentCategories.some(cat => otherCategories.includes(cat));
-          });
+  const otherCategories = Array.isArray(a.category) ? a.category : [a.category];
+  return currentCategories.some(cat => otherCategories.includes(cat));
+}).slice(0, 2); // Limit to 2 related articles
+
 
           renderRelatedArticles(relatedArticles, article.id);
         }
