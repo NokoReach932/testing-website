@@ -382,3 +382,11 @@ button:hover {
   display: none;
 }
 
+#writeSection, #viewSection {
+  display: none;
+}
+#writeSection.active, #viewSection.active {
+  display: block;
+}
+
+
