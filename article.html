@@ -3,184 +3,118 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Komnottra - Article</title>
+  <title>Komnottra ‑ Article</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.3/dist/purify.min.js" defer></script>
 
-  <!-- Blur‑up image styles -->
+  <!-- Inline styles that are page‑specific (blur‑up images, share button, related list) -->
   <style>
+    /* Image blur‑up (progressive loading) */
     .image-wrapper { position: relative; overflow: hidden; }
     .image-wrapper img { display: block; width: 100%; height: auto; }
-    .blurred { position: absolute; top: 0; left: 0; filter: blur(20px); transform: scale(1.1); transition: opacity .3s; }
-    .full-img { opacity: 0; transition: opacity .3s; position: relative; z-index: 1; }
+    .blurred         { position: absolute; inset: 0; filter: blur(20px); transform: scale(1.1); transition: opacity .3s; }
+    .full-img        { opacity: 0;   transition: opacity .3s; position: relative; z-index: 1; }
     .full-img.loaded { opacity: 1; }
 
-    /* Style for share button */
+    /* Facebook share button */
     #shareFacebookBtn {
-      margin: 1em 0;
-      padding: 0.5em 1em;
-      font-size: 1rem;
-      background-color: #1877F2;
-      color: white;
-      border: none;
-      border-radius: 4px;
+      margin: 1em 0; padding: .5em 1em; font-size: 1rem;
+      background: #1877F2; color: #fff; border: 0; border-radius: 4px; cursor: pointer;
+    }
+    #shareFacebookBtn:hover { background: #145dbf; }
+
+    /* Related articles — desktop grid */
+    #relatedArticlesSection { margin-top: 2.5em; padding-top: 1.5em; border-top: 1px solid #ccc; }
+    #relatedArticlesSection h3 { font-size: 1.4rem; margin-bottom: 1em; color: #333; }
+    #relatedArticlesList { display: flex; flex-wrap: wrap; gap: 1.5em; }
+
+    #relatedArticlesList .article-preview {
       cursor: pointer;
-      user-select: none;
+      width: calc(33% - 1em);
+      display: flex; flex-direction: column; text-align: center;
+      background: #fff; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px;
+      box-shadow: 0 1px 5px rgba(0,0,0,.1); transition: box-shadow .3s;
     }
-    #shareFacebookBtn:hover {
-      background-color: #145dbf;
+    #relatedArticlesList .article-preview:hover { box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+    #relatedArticlesList .article-preview img {
+      width: 100%; height: 140px; object-fit: cover; flex-shrink: 0; border-bottom: 1px solid #eee;
+    }
+    #relatedArticlesList .article-title {
+      margin: 0; font-weight: 600; font-size: 1rem; color: #222;
+      line-height: 1.3; max-height: 2.6em; /* exactly two lines */
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; text-overflow: ellipsis;
+      white-space: normal; cursor: help;
     }
 
-/* Related Articles styles */
-#relatedArticlesSection {
-  margin-top: 2.5em;
-  padding-top: 1.5em;
-  border-top: 1px solid #ccc;
-}
-
-#relatedArticlesSection h3 {
-  font-size: 1.4rem;
-  margin-bottom: 1em;
-  color: #333;
-}
-
-#relatedArticlesList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5em;
-}
-
-#relatedArticlesList .article-preview {
-  cursor: pointer;
-  width: calc(33% - 1em);
-  box-sizing: border-box;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.1);
-  transition: box-shadow 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-}
-
-#relatedArticlesList .article-preview:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-#relatedArticlesList .article-preview img {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-  border-bottom: 1px solid #eee;
-  flex-shrink: 0;
-}
-
-#relatedArticlesList .article-title {
-  font-weight: 600;
-  font-size: 1rem;
-  color: #222;
-  line-height: 1.3;
-  max-height: 2.6em; /* 2 lines × 1.3 line-height */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: help; /* optional, indicates tooltip */
-  white-space: normal;
-  margin: 0; /* remove default margin */
-}
-
-/* Responsive mobile fix */
-@media (max-width: 768px) {
-  #relatedArticlesList .article-preview {
-    width: 100%;
-    flex-direction: row;
-    height: 100px;
-    text-align: left;
-    align-items: center; /* vertically center content */
-    gap: 1em; /* space between image and text */
-  }
-
-  #relatedArticlesList .article-preview img {
-    width: 120px;
-    height: 100%;
-    border-bottom: none;
-    border-right: 1px solid #eee;
-    flex-shrink: 0;
-    object-fit: cover;
-  }
-
-  #relatedArticlesList .article-title {
-    padding: 0;
-    font-size: 0.9rem;
-    max-height: 2.6em; /* 2 lines */
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    cursor: help;
-    white-space: normal;
-    flex: 1; /* take remaining space */
-    margin: 0;
-  }
-}
-
-
-
+    /* Mobile: card becomes horizontal */
+    @media (max-width: 768px) {
+      #relatedArticlesList .article-preview { width: 100%; height: 100px; flex-direction: row; align-items: center; text-align: left; gap: 1em; }
+      #relatedArticlesList .article-preview img {
+        width: 120px; height: 100%; border-bottom: none; border-right: 1px solid #eee;
+      }
+      #relatedArticlesList .article-title {
+        padding: 0; font-size: .9rem; flex: 1; max-height: 2.6em; line-height: 1.3;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Top bar / logo / burger menu -->  
   <header>
     <img src="logo.png" data-animated="logo.gif" data-static="logo.png" alt="Komnottra Logo" class="logo" />
-    <div id="menuToggle" class="menu-toggle" aria-label="Toggle Menu">&#9776;</div>
+    <div id="menuToggle" class="menu-toggle" aria-label="Toggle Menu">&#9776;</div>
   </header>
 
+  <!-- Category nav injected by global script -->
   <div id="categoryNav" class="category-nav"></div>
-  <div id="overlay" class="overlay"></div>
+  <div id="overlay"     class="overlay"></div>
 
+  <!-- Side menu (toggle on mobile) -->
   <nav id="sideMenu" class="side-menu">
     <button id="viewTab" class="active">Home</button>
-    <button id="writeTab">Admin Write</button>
+    <button id="writeTab">Admin Write</button>
   </nav>
 
+  <!-- Main content container -->
   <div class="container">
+    <!-- Public view -->
     <section id="viewSection" class="section active">
       <div id="articleContainer"><p>Loading article...</p></div>
-      <a href="index.html" class="back-link">← ត្រឡប់ទៅទំព័រដើម</a>
+      <a href="index.html" class="back-link">← ត្រឡប់ទៅទំព័រដើម</a>
     </section>
 
+    <!-- Admin write placeholder (not used on this page) -->
     <section id="writeSection" class="section">
-      <h2>Write New Article</h2>
+      <h2>Write New Article</h2>
       <p>Admin panel not available on this page.</p>
     </section>
   </div>
 
+  <!-- Global script shared across pages (tabs, categories, etc.) -->
   <script src="script.js"></script>
 
+  <!-- Page‑specific logic for article detail + related list -->
   <script>
-    const API_BASE = "https://komnottra-backend.onrender.com";
+    const API_BASE = 'https://komnottra-backend.onrender.com';
 
-    // Menu toggle logic
+    /*──────────────────────────────
+      UI helpers: burger / overlay
+    ──────────────────────────────*/
     const menuToggle = document.getElementById('menuToggle');
     const sideMenu   = document.getElementById('sideMenu');
     const overlay    = document.getElementById('overlay');
 
+    //‑‑ Toggle side‑menu
     menuToggle.addEventListener('click', () => {
       sideMenu.classList.toggle('open');
       overlay.classList.toggle('active');
     });
-
+    //‑‑ Close side‑menu when overlay or any nav button tapped
     overlay.addEventListener('click', () => {
       sideMenu.classList.remove('open');
       overlay.classList.remove('active');
     });
-
     document.querySelectorAll('#sideMenu button').forEach(btn => {
       btn.addEventListener('click', () => {
         sideMenu.classList.remove('open');
@@ -188,16 +122,24 @@
       });
     });
 
+    //‑‑ Optional global category loader provided by script.js
     if (typeof loadCategories === 'function') loadCategories();
 
+    /*──────────────────────────────
+      Utility — format ISO string → dd/mm/yyyy hh:mm AM/PM
+    ──────────────────────────────*/
     function formatDate(dateString) {
       const date = new Date(dateString);
       const opts = { hour: 'numeric', minute: 'numeric', hour12: true };
-      const d    = `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}/${date.getFullYear()}`;
-      const t    = date.toLocaleTimeString([], opts);
-      return `${d} ${t}`;
+      const d = `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}/${date.getFullYear()}`;
+      const t = date.toLocaleTimeString([], opts);
+      return `${d} ${t}`;
     }
 
+    /*──────────────────────────────
+      API helpers (fetch)
+    ──────────────────────────────*/
+    // Fetch a single article by slug
     async function fetchArticleBySlug(slug) {
       try {
         const res = await fetch(`${API_BASE}/articles/slug/${encodeURIComponent(slug)}`);
@@ -209,6 +151,7 @@
       }
     }
 
+    // Fetch list of all articles (used to build related list)
     async function fetchAllArticles() {
       try {
         const res = await fetch(`${API_BASE}/articles`);
@@ -220,72 +163,63 @@
       }
     }
 
+    /*──────────────────────────────
+      Render related articles (max 2)
+    ──────────────────────────────*/
     function renderRelatedArticles(articles, currentArticleId) {
       const relatedSection = document.createElement('div');
-      relatedSection.id = "relatedArticlesSection";
+      relatedSection.id = 'relatedArticlesSection';
 
       const heading = document.createElement('h3');
-      heading.textContent = "អត្ថបទដែលពាក់ព័ន្ធ";
+      heading.textContent = 'អត្ថបទដែលពាក់ព័ន្ធ';
 
       const relatedList = document.createElement('div');
-      relatedList.id = "relatedArticlesList";
+      relatedList.id = 'relatedArticlesList';
 
       if (articles.length === 0) {
-        relatedList.innerHTML = "<p>គ្មានអត្ថបទដែលពាក់ព័ន្ធ។</p>";
+        relatedList.innerHTML = '<p>គ្មានអត្ថបទដែលពាក់ព័ន្ធ។</p>';
       } else {
         articles.forEach(article => {
-          if(article.id === currentArticleId) return; // skip current article
+          if (article.id === currentArticleId) return; // skip self‑reference
 
-          const preview = document.createElement('div');
-          preview.className = "article-preview";
+          const card = document.createElement('div');
+          card.className = 'article-preview';
 
-          let imgHTML = '';
-          if(article.imageUrl) {
-            const fullImageUrl = article.imageUrl.startsWith('http')
-              ? article.imageUrl
-              : API_BASE + article.imageUrl;
-            imgHTML = `<img src="${fullImageUrl}" alt="Related article image" loading="lazy" />`;
-          }
+          //‑‑ Thumbnail (if available)
+          const imgHTML = article.imageUrl
+            ? `<img src="${article.imageUrl.startsWith('http') ? article.imageUrl : API_BASE + article.imageUrl}" alt="Related article image" loading="lazy">`
+            : '';
 
-          preview.innerHTML = `
-            ${imgHTML}
-            <span class="article-title">${article.title}</span>
-          `;
-
-          preview.addEventListener('click', () => {
+          card.innerHTML = `${imgHTML}<span class="article-title" title="${article.title}">${article.title}</span>`;
+          card.addEventListener('click', () => {
             window.location.href = `article.html?slug=${article.slug}`;
           });
-
-          relatedList.appendChild(preview);
+          relatedList.appendChild(card);
         });
       }
 
-      relatedSection.appendChild(heading);
-      relatedSection.appendChild(relatedList);
+      relatedSection.append(heading, relatedList);
 
-      // Append the related articles section after the article content
-      const articleContainer = document.querySelector('#articleContainer .article-container');
-      if(articleContainer) {
-        articleContainer.appendChild(relatedSection);
-      }
+      //‑‑ Append after main article content
+      document.querySelector('#articleContainer .article-container')?.appendChild(relatedSection);
     }
 
+    /*──────────────────────────────
+      Main entry — fetch & display article
+    ──────────────────────────────*/
     async function displayArticle() {
-      const slug = new URLSearchParams(window.location.search).get('slug');
+      const slugParam = new URLSearchParams(window.location.search).get('slug');
       const container = document.getElementById('articleContainer');
-      if (!slug) { container.innerHTML = '<p>Article slug is missing.</p>'; return; }
+      if (!slugParam) { container.innerHTML = '<p>Article slug is missing.</p>'; return; }
 
       try {
-        const article = await fetchArticleBySlug(slug);
-        if (!article) {
-          container.innerHTML = '<p>Article not found.</p>';
-          return;
-        }
+        //‑‑ 1) Fetch main article
+        const article = await fetchArticleBySlug(slugParam);
+        if (!article) { container.innerHTML = '<p>Article not found.</p>'; return; }
 
+        //‑‑ 2) Build article HTML (sanitize user HTML with DOMPurify)
         const safeContent = DOMPurify.sanitize(article.content || '');
-        const baseUrl     = API_BASE;
-        const fullImg     = article.imageUrl ? (article.imageUrl.startsWith('http') ? article.imageUrl : baseUrl + article.imageUrl) : null;
-        const blurImg     = article.blurDataUrl || '';
+        const fullImg = article.imageUrl ? (article.imageUrl.startsWith('http') ? article.imageUrl : API_BASE + article.imageUrl) : null;
 
         container.innerHTML = `
           <div class="article-container">
@@ -295,50 +229,39 @@
             ${article.category  ? `<p class="article-category">ប្រភេទព័ត៌មាន: ${article.category}</p>` : ''}
             ${fullImg ? `
               <div class="image-wrapper">
-                <img src="${blurImg}" class="blurred" aria-hidden="true" />
-                <img src="${fullImg}" alt="Article Image" class="full-img" loading="lazy" onload="this.classList.add('loaded')" />
+                <img src="${article.blurDataUrl || ''}" class="blurred" aria-hidden="true">
+                <img src="${fullImg}" alt="Article Image" class="full-img" loading="lazy" onload="this.classList.add('loaded')">
               </div>` : ''}
             <div class="article-content">${safeContent}</div>
           </div>`;
 
-        // Facebook share button event
-        const shareFacebookBtn = document.getElementById('shareFacebookBtn');
-        if (shareFacebookBtn) {
-          shareFacebookBtn.addEventListener('click', () => {
-            const shareUrl = `https://komnottra.com/share/${encodeURIComponent(slug)}`;
-            const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-            window.open(facebookShareUrl, 'fbShareWindow', 'height=450, width=550, top=' + 
-                        (window.innerHeight / 2 - 225) + ', left=' + (window.innerWidth / 2 - 275) + 
-                        ', toolbar=0, location=0, menubar=0, directories=0, scrollbars=0');
-          });
-        }
+        //‑‑ 3) Share to Facebook handler
+        document.getElementById('shareFacebookBtn')?.addEventListener('click', () => {
+          const shareUrl = `https://komnottra.com/share/${encodeURIComponent(slugParam)}`;
+          const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+          window.open(fbUrl, 'fbShareWindow', `height=450,width=550,top=${window.innerHeight/2-225},left=${window.innerWidth/2-275},toolbar=0,location=0,menubar=0,scrollbars=0`);
+        });
 
-        // Fetch all articles and find related articles by category
-        if(article.category) {
+        //‑‑ 4) Fetch all articles → build related list (max 2)
+        if (article.category) {
           const allArticles = await fetchAllArticles();
+          const currentCats = Array.isArray(article.category) ? article.category : [article.category];
 
-          const currentCategories = Array.isArray(article.category)
-            ? article.category
-            : [article.category];
+          const related = allArticles.filter(a => {
+            if (a.id === article.id || !a.category) return false;
+            const cats = Array.isArray(a.category) ? a.category : [a.category];
+            return currentCats.some(c => cats.includes(c));
+          }).slice(0, 2); // keep only two
 
-          const relatedArticles = allArticles.filter(a => {
-  if (a.id === article.id) return false;
-  if (!a.category) return false;
-
-  const otherCategories = Array.isArray(a.category) ? a.category : [a.category];
-  return currentCategories.some(cat => otherCategories.includes(cat));
-}).slice(0, 2); // Limit to 2 related articles
-
-
-          renderRelatedArticles(relatedArticles, article.id);
+          renderRelatedArticles(related, article.id);
         }
-
       } catch (err) {
         console.error(err);
         container.innerHTML = '<p>Article not found.</p>';
       }
     }
 
+    //‑‑ Kick‑off on load
     window.onload = displayArticle;
   </script>
 </body>
