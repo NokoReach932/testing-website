@@ -8,7 +8,7 @@ if (typeof API_BASE === "undefined") {
 /* ------------------------------------------------------------------
    Element selectors
 ------------------------------------------------------------------ */
-
+const writeTab            = document.getElementById("writeTab");
 const viewTab             = document.getElementById("viewTab");     // “Home” in side-menu
 const writeSection        = document.getElementById("writeSection");
 const viewSection         = document.getElementById("viewSection");
@@ -311,6 +311,16 @@ function convertImageToBase64(file) {
 ------------------------------------------------------------------ */
 const isIndexPage = /index\.html$/.test(location.pathname) || location.pathname === "/" || location.pathname === "";
 
+// === New: Hide admin tab by default, show if URL contains ?admin=1
+if (writeTab) {
+  writeTab.style.display = "none";
+}
+if (window.location.search.includes("admin=1")) {
+  if (writeTab) {
+    writeTab.style.display = "block";
+  }
+}
+
 if (viewTab && writeTab && viewSection && writeSection) {
   /* Home (viewTab) — new logic: redirect to index if not already there */
   viewTab.addEventListener("click", async () => {
@@ -420,9 +430,9 @@ if (form) {
 window.onload = async () => {
   await refreshCategoryDropdowns();
 
-  if (location.hash === "#write" && writeTab && writeTab.style.display !== "none") {
-    writeTab.click();
-  } else if (viewTab) {
-    viewTab.click();
+  if (location.hash === "#write") {
+    if (writeTab) writeTab.click();
+  } else {
+    if (viewTab) viewTab.click();
   }
 };
