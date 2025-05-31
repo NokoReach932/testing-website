@@ -8,10 +8,6 @@ if (typeof API_BASE === "undefined") {
 /* ------------------------------------------------------------------
    Element selectors
 ------------------------------------------------------------------ */
-const writeSection = document.getElementById("writeSection");
-if (writeSection) {
-  writeSection.style.display = "none";
-}
 
 const viewTab             = document.getElementById("viewTab");     // “Home” in side-menu
 const writeSection        = document.getElementById("writeSection");
