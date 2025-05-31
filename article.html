@@ -32,7 +32,7 @@
       background-color: #145dbf;
     }
 
-    /* Related Articles styles */
+/* Related Articles styles */
 #relatedArticlesSection {
   margin-top: 2.5em;
   padding-top: 1.5em;
@@ -75,6 +75,7 @@
   height: 140px;
   object-fit: cover;
   border-bottom: 1px solid #eee;
+  flex-shrink: 0;
 }
 
 #relatedArticlesList .article-title {
@@ -83,15 +84,40 @@
   font-size: 1rem;
   color: #222;
   line-height: 1.3;
-  min-height: 3em; /* approx 2 lines height */
+  max-height: 2.6em; /* 2 lines × 1.3 line-height */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: help; /* optional, indicates there's a tooltip */
-  white-space: normal; /* allow wrapping */
+  cursor: help; /* optional, indicates tooltip */
+  white-space: normal;
+  margin: 0; /* remove default margin */
 }
+
+/* Responsive mobile fix */
+@media (max-width: 768px) {
+  #relatedArticlesList .article-preview {
+    width: 100%;
+    flex-direction: row;
+    height: 100px;
+    text-align: left;
+  }
+
+  #relatedArticlesList .article-preview img {
+    width: 120px;
+    height: 100%;
+    border-bottom: none;
+    border-right: 1px solid #eee;
+  }
+
+  #relatedArticlesList .article-title {
+    padding: 0.6em 1em;
+    font-size: 0.9rem;
+    max-height: 2.6em; /* keep 2 lines */
+  }
+}
+
 
   </style>
 </head>
