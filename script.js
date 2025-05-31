@@ -24,6 +24,8 @@ const deleteCategorySelect= document.getElementById("deleteCategorySelect");
 const categorySelect      = document.getElementById("categorySelect");
 const logo                = document.querySelector(".logo");
 
+const cancelEditBtn       = document.getElementById("cancelEditBtn"); // New: cancel edit button
+
 // Added: Create a GIF overlay element inside the form or dynamically
 let gifOverlay = document.createElement("div");
 gifOverlay.style.position = "fixed";
@@ -76,6 +78,8 @@ const adminPassword       = "123";
 let articleData           = [];
 let filteredArticles      = [];
 let currentCategoryFilter = null;
+
+let editingArticleId = null; // New: track article editing mode
 
 /* ------------------------------------------------------------------
    Helpers: fetches
@@ -278,8 +282,12 @@ function displayAdminArticles() {
   adminArticles.innerHTML = "";
   articleData.forEach(a => {
     const d = document.createElement("div");
-    d.innerHTML = `<hr><strong>${a.title}</strong>
-                   <button class="delete-btn" onclick="deleteArticle(${a.id})">Delete</button>`;
+    d.innerHTML = `
+      <hr>
+      <strong>${a.title}</strong>
+      <button class="edit-btn" onclick="startEditingArticle(${a.id})">Edit</button>  <!-- New edit button -->
+      <button class="delete-btn" onclick="deleteArticle(${a.id})">Delete</button>
+    `;
     adminArticles.appendChild(d);
   });
 }
@@ -332,107 +340,151 @@ if (viewTab && writeTab && viewSection && writeSection) {
     writeTab.classList.remove("active");
     viewSection.classList.add("active");
     writeSection.classList.remove("active");
-    history.pushState({ section: "view" }, "View Articles", "#view");
-    currentCategoryFilter = null;
+    history.pushState({ section: "view" }, "Home", "#view");
     await displayArticles();
   });
 
-  /* Admin Write — prompt login first on ANY page, then redirect or switch tab */
+  /* Write (admin) */
   writeTab.addEventListener("click", async () => {
-    if (!isAdmin) {
-      const u = prompt("Enter admin username:");
-      const p = prompt("Enter admin password:");
-      if (u === adminUsername && p === adminPassword) {
-        isAdmin = true;
-        localStorage.setItem("isAdmin", "true");   // Persist login state
-        alert("Welcome, Admin!");
-      } else {
-        alert("Incorrect credentials.");
-        return; // Stop here if login failed
-      }
-    }
-
-    if (!isIndexPage) {
-      // After successful login, persist state and redirect to index page #write
-      localStorage.setItem("isAdmin", "true");
-      location.href = "index.html#write";
-      return;
-    }
-
-    // Already on index page, just switch tabs
     writeTab.classList.add("active");
     viewTab.classList.remove("active");
     writeSection.classList.add("active");
     viewSection.classList.remove("active");
     history.pushState({ section: "write" }, "Write Article", "#write");
-    currentCategoryFilter = null;
     await fetchArticles();
     displayAdminArticles();
+    if (cancelEditBtn) cancelEditBtn.style.display = "none"; // Reset cancel button visibility
   });
-}
 
-/* ------------------------------------------------------------------
-   Article submission with GIF overlay and real image file upload
------------------------------------------------------------------- */
-if (form) {
-  form.addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const title = document.getElementById("title").value.trim();
-    const content = document.getElementById("content").value.trim();
-    const file = document.getElementById("imageUpload").files[0];
-    if (!title || !content) { alert("Title and content are required."); return; }
-
-    // Show loading GIF overlay
-    successImg.style.display = "none";
-    loadingImg.style.display = "block";
-    gifOverlay.style.display = "flex";
-
-    const formData = new FormData(form);
-    // Ensure category is included if not part of the form inputs
-
-    try {
-      const response = await fetch(`${API_BASE}/articles`, {
-        method: "POST",
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert(errorData.message || "Failed to save article");
-        gifOverlay.style.display = "none";
-        return;
-      }
-
-      // Show success GIF after save
-      loadingImg.style.display = "none";
-      successImg.style.display = "block";
-
-      // Wait 1.5 seconds to show success GIF, then reset form and hide overlay
-      setTimeout(() => {
-        gifOverlay.style.display = "none";
-        form.reset();
-        fetchArticles().then(() => {
-          displayAdminArticles();
-          if (writeTab) writeTab.click();
-        });
-      }, 1500);
-    } catch (err) {
-      alert("Failed to save article. Please try again.");
-      gifOverlay.style.display = "none";
+  window.addEventListener("popstate", (event) => {
+    const state = event.state;
+    if (state?.section === "write") {
+      writeTab.click();
+    } else {
+      viewTab.click();
     }
   });
 }
 
 /* ------------------------------------------------------------------
-   On load
+   Start editing article: loads article data into form for editing
 ------------------------------------------------------------------ */
-window.onload = async () => {
-  await refreshCategoryDropdowns();
+window.startEditingArticle = async (id) => {
+  const article = articleData.find(a => a.id === id);
+  if (!article) {
+    alert("Article not found.");
+    return;
+  }
 
-  if (location.hash === "#write") {
-    if (writeTab) writeTab.click();
-  } else {
-    if (viewTab) viewTab.click();
+  editingArticleId = id;
+
+  document.getElementById("title").value = article.title || "";
+  document.getElementById("content").value = article.content || "";
+  if (categorySelect) categorySelect.value = article.category || "";
+
+  // Reset image file input so user can upload new image if wanted
+  const imageInput = document.getElementById("imageUpload");
+  if (imageInput) imageInput.value = "";
+
+  // Show cancel edit button
+  if (cancelEditBtn) cancelEditBtn.style.display = "inline-block";
+
+  // Switch to Write tab and update UI accordingly
+  if (writeTab && viewTab && writeSection && viewSection) {
+    writeTab.classList.add("active");
+    viewTab.classList.remove("active");
+    writeSection.classList.add("active");
+    viewSection.classList.remove("active");
+    history.pushState({ section: "write" }, "Edit Article", "#write");
   }
 };
+
+/* ------------------------------------------------------------------
+   Form submit handler: creates or updates article
+------------------------------------------------------------------ */
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const title = document.getElementById("title").value.trim();
+  const content = document.getElementById("content").value.trim();
+  const file = document.getElementById("imageUpload").files[0];
+  const category = categorySelect ? categorySelect.value : null;
+
+  if (!title || !content) {
+    alert("Title and content are required.");
+    return;
+  }
+
+  successImg.style.display = "none";
+  loadingImg.style.display = "block";
+  gifOverlay.style.display = "flex";
+
+  try {
+    let response;
+    if (editingArticleId !== null) {
+      // Edit existing article
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("content", content);
+      if (category) formData.append("category", category);
+      if (file) formData.append("image", file);
+
+      response = await fetch(`${API_BASE}/articles/${editingArticleId}`, {
+        method: "PUT",
+        body: formData,
+      });
+    } else {
+      // New article
+      const formData = new FormData(form);
+      response = await fetch(`${API_BASE}/articles`, {
+        method: "POST",
+        body: formData,
+      });
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert(errorData.message || "Failed to save article");
+      gifOverlay.style.display = "none";
+      return;
+    }
+
+    loadingImg.style.display = "none";
+    successImg.style.display = "block";
+
+    setTimeout(async () => {
+      gifOverlay.style.display = "none";
+      form.reset();
+      editingArticleId = null;
+      if (cancelEditBtn) cancelEditBtn.style.display = "none";
+
+      await fetchArticles();
+      displayAdminArticles();
+      if (writeTab) writeTab.click();
+    }, 1500);
+
+  } catch (err) {
+    alert("Failed to save article. Please try again.");
+    gifOverlay.style.display = "none";
+  }
+});
+
+/* ------------------------------------------------------------------
+   Cancel edit button handler
+------------------------------------------------------------------ */
+if (cancelEditBtn) {
+  cancelEditBtn.addEventListener("click", () => {
+    editingArticleId = null;
+    form.reset();
+    cancelEditBtn.style.display = "none";
+  });
+}
+
+/* ------------------------------------------------------------------
+   On page load
+------------------------------------------------------------------ */
+(async () => {
+  await refreshCategoryDropdowns();
+  await fetchArticles();
+  await displayArticles();
+})();
