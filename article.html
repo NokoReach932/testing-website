@@ -24,45 +24,118 @@
     }
     #shareFacebookBtn:hover { background: #145dbf; }
 
+    /* Container for title + related articles side by side */
+    .title-related-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1em;
+    }
+
     /* Related articles — desktop grid */
-    #relatedArticlesSection { margin-top: 2.5em; padding-top: 1.5em; border-top: 1px solid #ccc; }
-    #relatedArticlesSection h3 { font-size: 1.4rem; margin-bottom: 1em; color: #dfdbdb; }
-    #relatedArticlesList { display: flex; flex-wrap: wrap; gap: 1.5em; }
+    #relatedArticlesSection {
+      margin: 0; /* remove top margin as it’s inline now */
+      padding: 0;
+      max-width: 320px;
+      border-top: none;
+    }
+    #relatedArticlesSection h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5em;
+      color: #dfdbdb;
+      white-space: nowrap;
+    }
+    #relatedArticlesList {
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+    }
 
     #relatedArticlesList .article-preview {
       cursor: pointer;
-      width: calc(33% - 1em);
-      display: flex; flex-direction: column; text-align: center;
-      background: #fff; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px;
-      box-shadow: 0 1px 5px rgba(0,0,0,.1); transition: box-shadow .3s;
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      text-align: left;
+      background: #fff;
+      box-sizing: border-box;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 1px 5px rgba(0,0,0,.1);
+      transition: box-shadow .3s;
+      gap: 0.75em;
+      padding: 0.3em;
     }
-    #relatedArticlesList .article-preview:hover { box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+    #relatedArticlesList .article-preview:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    }
     #relatedArticlesList .article-preview img {
-      width: 100%; height: 140px; object-fit: cover; flex-shrink: 0; border-bottom: 1px solid #eee;
+      width: 80px;
+      height: 60px;
+      object-fit: cover;
+      flex-shrink: 0;
+      border-radius: 4px;
+      border: 1px solid #eee;
     }
     #relatedArticlesList .article-title {
-      margin: 0; font-weight: 600; font-size: 1rem; color: #222;
-      line-height: 1.3; max-height: 2.6em; /* exactly two lines */
-      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; text-overflow: ellipsis;
-      white-space: normal; cursor: help;
+      margin: 0;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #222;
+      line-height: 1.2;
+      max-height: 2.4em; /* roughly two lines */
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal;
+      cursor: help;
     }
 
     #relatedArticlesList .highlight {
-  background-color: yellow;
-  font-weight: bold;
-  padding: 0.1em 0.2em;
-  border-radius: 4px;
-}
+      background-color: yellow;
+      font-weight: bold;
+      padding: 0.1em 0.2em;
+      border-radius: 4px;
+    }
 
-
-    /* Mobile: card becomes horizontal */
+    /* Mobile: stack related articles below title */
     @media (max-width: 768px) {
-      #relatedArticlesList .article-preview { width: 100%; height: 100px; flex-direction: row; align-items: center; text-align: left; gap: 1em; }
+      .title-related-wrapper {
+        flex-direction: column;
+      }
+      #relatedArticlesSection {
+        max-width: 100%;
+        margin-top: 1em;
+        border-top: 1px solid #ccc;
+        padding-top: 1em;
+      }
+      #relatedArticlesList .article-preview {
+        width: 100%;
+        height: 100px;
+        flex-direction: row;
+        align-items: center;
+        text-align: left;
+        gap: 1em;
+        padding: 0.5em;
+      }
       #relatedArticlesList .article-preview img {
-        width: 120px; height: 100%; border-bottom: none; border-right: 1px solid #eee;
+        width: 120px;
+        height: 100%;
+        border: none;
+        border-right: 1px solid #eee;
+        border-radius: 0;
       }
       #relatedArticlesList .article-title {
-        padding: 0; font-size: .9rem; flex: 1; max-height: 2.6em; line-height: 1.3;
+        padding: 0;
+        font-size: 0.9rem;
+        flex: 1;
+        max-height: 2.6em;
+        line-height: 1.3;
       }
     }
   </style>
@@ -208,8 +281,23 @@
 
       relatedSection.append(heading, relatedList);
 
-      //‑‑ Append after main article content
-      document.querySelector('#articleContainer .article-container')?.appendChild(relatedSection);
+      //‑‑ Append next to the title inside article-container
+      const articleContainer = document.querySelector('#articleContainer .article-container');
+      if (articleContainer) {
+        // Insert the related articles inside a new wrapper next to the title
+        let wrapper = articleContainer.querySelector('.title-related-wrapper');
+        if (!wrapper) {
+          // Create wrapper and move title inside it
+          const titleEl = articleContainer.querySelector('.article-title');
+          wrapper = document.createElement('div');
+          wrapper.className = 'title-related-wrapper';
+          if (titleEl) {
+            wrapper.appendChild(titleEl);
+            articleContainer.insertBefore(wrapper, articleContainer.firstChild);
+          }
+        }
+        wrapper.appendChild(relatedSection);
+      }
     }
 
     /*──────────────────────────────
